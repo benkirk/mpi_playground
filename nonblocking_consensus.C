@@ -7,17 +7,17 @@
 int main (int argc, char **argv)
 {
   int numprocs, procid;
-  MPI_Win win;
+  // MPI_Win win;
 
   MPI_Init (&argc, &argv);
   MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
   MPI_Comm_rank (MPI_COMM_WORLD, &procid);
 
 
-  std::set<unsigned int> vals;
+  std::set<unsigned int> dests;
   MPI_Playground::random_in_range (std::min(5,numprocs),
-				   (numprocs),
-				   vals);
+				   numprocs,
+				   dests);
 
 
   for (unsigned int proc=0; proc<numprocs; proc++)
@@ -26,44 +26,70 @@ int main (int argc, char **argv)
       if (proc == procid)
 	{
 	  std::cout << "Rank " << std::setw(3) << procid << " sends to \t{ ";
-	  for (std::set<unsigned int>::const_iterator it = vals.begin();
-	       it!=vals.end(); ++it)
+	  for (std::set<unsigned int>::const_iterator it = dests.begin();
+	       it!=dests.end(); ++it)
 	    std::cout << std::setw(3) << *it << " ";
 	  std::cout << " }\n";
 	}
     }
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  std::vector<MPI_Request> requests(dests.size());
+  MPI_Request barrier_request;
+
+  unsigned int send_val = 12345, recv_val=0, send_step=0;
+  int tag = 100;
 
 
+  // Start sends
+  for (std::set<unsigned int>::const_iterator it = dests.begin();
+       it!=dests.end(); ++it)
+    MPI_Issend (&send_val, 1, MPI_UNSIGNED, *it,
+		tag, MPI_COMM_WORLD, &requests[send_step++]);
 
+  bool done=false, barrier_act=false;
 
-  std::vector<unsigned int> recv_buf(numprocs, 0);
+  MPI_Status status;
 
-  MPI_Win_create (&recv_buf[0], recv_buf.size()*sizeof(unsigned int), sizeof(unsigned int),
-		  MPI_INFO_NULL, MPI_COMM_WORLD,
-		  &win);
-
-  MPI_Win_fence (MPI_MODE_NOPRECEDE /* 0 */, win);
-
-  for (unsigned int proc=0; proc<numprocs; proc++)
-    MPI_Put (&procid, 1, MPI_UNSIGNED,
-	     proc, procid, 1, MPI_UNSIGNED,
-	     win);
-
-  MPI_Win_fence (0, win);
-
-
-  for (unsigned int proc=0; proc<numprocs; proc++)
+  while (!done)
     {
-      MPI_Barrier(MPI_COMM_WORLD);
-      if (proc == procid)
+      int flag=0;
+
+      MPI_Iprobe (MPI_ANY_SOURCE, tag, MPI_COMM_WORLD,
+		  &flag, &status);
+
+      if (flag)
 	{
-	  for (unsigned int i=0; i<recv_buf.size(); i++)
-	    std::cout << recv_buf[i] << " ";
-	  std::cout << std::endl;
+	  MPI_Recv (&recv_val, 1, MPI_UNSIGNED,
+		    status.MPI_SOURCE, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	  //std::cout << send_val << " " << recv_val << std::endl;
+	}
+
+      if (barrier_act)
+	{
+	  flag=0;
+	  MPI_Test (&barrier_request, &flag, MPI_STATUS_IGNORE);
+	  if (flag)
+	    {
+	      std::cout << "Rank " << procid << " is done.\n";
+	      done = true;
+	    }
+	}
+      else
+	{
+	  flag=0;
+	  MPI_Testall (requests.size(), &requests[0], &flag, MPI_STATUS_IGNORE);
+
+	  if (flag)
+	    {
+	      std::cout << "Rank " << procid << " reached barrier.\n";
+	      MPI_Ibarrier (MPI_COMM_WORLD, &barrier_request);
+	      barrier_act = true;
+	    }
 	}
     }
 
-  MPI_Win_free (&win);
+  // MPI_Win_free (&win);
   MPI_Finalize();
 
   return 0;
