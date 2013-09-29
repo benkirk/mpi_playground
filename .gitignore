@@ -1,13 +1,17 @@
-# Compiled Object files
-*.slo
-*.lo
+# ignore automake cruft
 *.o
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+.deps/
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+build-aux/
+config.log
+config.status
+configure
+ibarrier
+mpi_play_config.h
+mpi_play_config.h.in
+one_sided
+stamp-h1
+*.tar.*
