@@ -1,5 +1,4 @@
-collectivedir = $(pkglibexecdir)/mpi/collective
-collective_PROGRAMS = osu_alltoallv osu_allgatherv osu_scatterv osu_gatherv osu_reduce_scatter osu_barrier osu_reduce osu_allreduce osu_alltoall osu_bcast  osu_gather osu_allgather osu_scatter 
+bin_PROGRAMS = osu_alltoallv osu_allgatherv osu_scatterv osu_gatherv osu_reduce_scatter osu_barrier osu_reduce osu_allreduce osu_alltoall osu_bcast  osu_gather osu_allgather osu_scatter
 
 osu_alltoallv_SOURCES = osu_alltoallv.c osu_coll.c osu_coll.h
 osu_allgatherv_SOURCES = osu_allgatherv.c osu_coll.c osu_coll.h
@@ -18,4 +17,3 @@ osu_bcast_SOURCES = osu_bcast.c osu_coll.c osu_coll.h
 if OPENACC
     AM_CFLAGS = -acc
 endif
-

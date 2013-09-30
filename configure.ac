@@ -27,6 +27,10 @@ AC_PROG_CXX([mpicxx mpic++ mpiCC])
 
 # Checks for library functions.
 
+# Configure subpackages
+AC_CONFIG_SUBDIRS([osu-benchmarks])
+
+# Set up output files
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 AC_MSG_RESULT(---------------------------------------------)

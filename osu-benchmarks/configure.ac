@@ -6,6 +6,9 @@ AC_INIT([OSU-Micro-Benchmarks], [4.1], [mvapich-discuss@cse.ohio-state.edu])
 AC_CONFIG_SRCDIR([mpi/pt2pt/osu_latency.c])
 
 AM_INIT_AUTOMAKE([foreign])
+# use silent rules - automake 1.11
+AM_SILENT_RULES(yes)
+
 
 AC_ARG_ENABLE([openacc],
               [AS_HELP_STRING([--enable-openacc],

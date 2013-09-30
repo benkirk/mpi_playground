@@ -1,3 +1,5 @@
+SUBDIRS = osu-benchmarks
+
 bin_PROGRAMS =
 
 bin_PROGRAMS     += ibarrier one_sided nonblocking_consensus
