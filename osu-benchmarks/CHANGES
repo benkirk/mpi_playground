@@ -1,0 +1,110 @@
+OSU Micro Benchmarks v4.1 (8/24/13)
+* New Features & Enhancements
+    - New OpenSHMEM benchmarks
+        * osu_oshm_barrier
+        * osu_oshm_broadcast
+        * osu_oshm_collect
+        * osu_oshm_reduce
+    - New MPI-3 RMA Atomics benchmarks
+        * osu_cas_flush
+        * osu_fop_flush
+
+OSU Micro Benchmarks v4.0.1 (5/06/13)
+* Bug Fixes
+    - Fix several warnings
+
+OSU Micro Benchmarks v4.0 (4/16/13)
+* New Features & Enhancements
+    - Support buffer allocation using OpenACC and CUDA in osu_alltoall,
+      osu_gather, and osu_scatter benchmarks
+    - Limit amount of memory allocated by collective benchmarks dynamically
+      based on number of processes
+        - Memory limit can also be explicitly set by the user through the -m
+          option
+    - Support for 64-bit atomic operations in osu_oshm_atomics
+
+* Bug Fixes
+    - Fix numerical overflow error with reporting bandwidth in osu_mbw_mr
+
+OSU Micro Benchmarks v3.9 (2/28/13)
+* New Features & Enhancements
+    - Support buffer allocation using OpenACC in GPU benchmarks
+    - Use average time instead of max time for calculating the bandwidth and
+      message rate in osu_mbw_mr 
+        - Thanks to Alex Mikheev from Mellanox for the patch
+* Bug Fixes
+    - Properly initialize host buffers for DH and HD transfers in GPU
+      benchmarks
+
+OSU Micro Benchmarks v3.8 (11/07/12)
+* New Features & Enhancements
+    - New UPC benchmarks
+        * osu_upc_memput
+        * osu_upc_memget
+
+OSU Micro Benchmarks v3.7 (9/07/12)
+* New Features & Enhancements
+    - New OpenSHMEM benchmarks
+        * osu_oshm_get
+        * osu_oshm_put_mr
+        * osu_oshm_atomics
+        * osu_oshm_put
+    - Organize installation directory according to benchmark type
+* Bug Fixes
+    - Destroy cuda context before exiting
+
+OSU Micro Benchmarks v3.6 (4/30/12)
+* New Features & Enhancements
+    - New collective benchmarks
+        * osu_allgather
+        * osu_allgatherv
+        * osu_allreduce
+        * osu_alltoall
+        * osu_alltoallv
+        * osu_barrier
+        * osu_bcast
+        * osu_gather
+        * osu_gatherv
+        * osu_reduce
+        * osu_reduce_scatter
+        * osu_scatter
+        * osu_scatterv
+* Bug Fixes
+    - Fix GPU binding issue when running with HH mode
+
+OSU Micro Benchmarks v3.5.2 (3/22/12)
+* Bug Fixes
+    - Fix typo which led to use of incorrect buffers
+
+OSU Micro Benchmarks v3.5.1 (2/02/12)
+* New Features & Enhancements
+    - Provide script to set GPU affinity for MPI processes
+* Bug Fixes
+    - Removed GPU binding after MPI_Init to avoid switching context
+
+OSU Micro Benchmarks v3.5 (11/09/11)
+* New Features & Enhancements
+    - Extension of osu_latency, osu_bw, and osu_bibw benchmarks to evaluate the
+      performance of MPI_Send/MPI_Recv operation with NVIDIA GPU device and
+      CUDA support
+        - This functionality is exposed when configured with --enable-cuda
+          option
+    - Flexibility for using buffers in NVIDIA GPU device (D) and host memory (H)
+    - Flexibility for selecting data movement between D->D, D->H and H->D
+
+OSU Micro Benchmarks v3.4 (09/13/11)
+* New Features & Enhancements
+    - Add passive one-sided communication benchmarks
+    - Update one-sided communication benchmarks to provide shared memory hint
+      in MPI_Alloc_mem calls
+    - Update one-sided communication benchmarks to use MPI_Alloc_mem for buffer
+      allocation
+    - Give default values to configure definitions (can now build directly with
+      mpicc)
+    - Update latency benchmarks to begin from 0 byte message
+* Bug Fixes
+    - Remove memory leaks in one-sided communication benchmarks
+    - Update benchmarks to touch buffers before using them for communication
+    - Fix osu_get_bw test to use different buffers for concurrent communication
+      operations
+    - Fix compilation warnings
