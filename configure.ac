@@ -18,8 +18,13 @@ AM_SILENT_RULES(yes)
 
 # Checks for programs.
 AC_PROG_CXX([mpicxx mpic++ mpiCC])
+AC_PROG_CC([mpicc])
 
 # Checks for libraries.
+
+# Checks for MPI features
+AC_CHECK_FUNC([MPI_Win_create], [mpi_win_create=true])
+AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true])
 
 # Checks for header files.
 
