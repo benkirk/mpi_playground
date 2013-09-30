@@ -65,27 +65,27 @@ AM_CONDITIONAL([HAVE_OFED], [test x$with_ofed != x])
 AC_CONFIG_FILES([Makefile libdict/Makefile of/Makefile])
 AC_OUTPUT
 
-echo ""
-echo "LibNBC Configuration Summary:"
-if test x$have_ofed = x1; then
-  echo -n "configuring OFED as transport interface (patching nbc.h) ... "
-  cat $srcdir/nbc.h | sed -e "s/define USE_MPI/define USE_OFED/" > nbc.tmp
-  mv nbc.tmp nbc.h
-  echo "done"
-elif test x$have_dcmf = x1; then
-  echo -n "configuring DCMF as transport interface (patching nbc.h) ... "
-  cat $srcdir/nbc.h | sed -e "s/define USE_MPI/define USE_DCMF/" > nbc.tmp
-  mv nbc.tmp nbc.h
-  echo "done"
-else
-  echo -n "configuring MPI as transport interface (patching nbc.h) ... "
-  cat $srcdir/nbc.h | sed -e "s/define USE_OFED/define USE_MPI/" > nbc.tmp
-  mv nbc.tmp nbc.h
-  echo "done"
-fi;
-if test x$have_rt_thread = x1; then
-  echo "real-time progress thread enabled ... "
-elif test x$have_thread = x1; then
-  echo "progress thread enabled ... "
-fi;
-echo ""
+# echo ""
+# echo "LibNBC Configuration Summary:"
+# if test x$have_ofed = x1; then
+#   echo -n "configuring OFED as transport interface (patching nbc.h) ... "
+#   cat $srcdir/nbc.h | sed -e "s/define USE_MPI/define USE_OFED/" > nbc.tmp
+#   mv nbc.tmp nbc.h
+#   echo "done"
+# elif test x$have_dcmf = x1; then
+#   echo -n "configuring DCMF as transport interface (patching nbc.h) ... "
+#   cat $srcdir/nbc.h | sed -e "s/define USE_MPI/define USE_DCMF/" > nbc.tmp
+#   mv nbc.tmp nbc.h
+#   echo "done"
+# else
+#   echo -n "configuring MPI as transport interface (patching nbc.h) ... "
+#   cat $srcdir/nbc.h | sed -e "s/define USE_OFED/define USE_MPI/" > nbc.tmp
+#   mv nbc.tmp nbc.h
+#   echo "done"
+# fi;
+# if test x$have_rt_thread = x1; then
+#   echo "real-time progress thread enabled ... "
+# elif test x$have_thread = x1; then
+#   echo "progress thread enabled ... "
+# fi;
+# echo ""
