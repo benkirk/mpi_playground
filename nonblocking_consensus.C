@@ -73,8 +73,8 @@ int main (int argc, char **argv)
 	  MPI_Testall (requests.size(), &requests[0], &sent, MPI_STATUSES_IGNORE);
 	  if (sent)
 	    {
-	      std::cout << "Rank " << procid << " reached barrier.\n";
 	      MPI_Ibarrier (MPI_COMM_WORLD, &barrier);
+	      //std::cout << "Rank " << procid << " reached barrier.\n";
 	    }
 	}
       else
