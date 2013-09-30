@@ -24,7 +24,7 @@ AC_PROG_CC([mpicc])
 
 # Checks for MPI features
 AC_CHECK_FUNC([MPI_Win_create], [mpi_win_create=true])
-AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true])
+AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true], [mpi_ibarrier=false])
 
 # Checks for header files.
 
@@ -33,7 +33,7 @@ AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true])
 # Checks for library functions.
 
 # Configure subpackages
-AC_CONFIG_SUBDIRS([osu-benchmarks])
+AC_CONFIG_SUBDIRS([libNBC osu-benchmarks])
 
 # Set up output files
 AC_CONFIG_FILES([Makefile])

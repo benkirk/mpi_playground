@@ -1,4 +1,4 @@
-SUBDIRS = osu-benchmarks
+SUBDIRS = libNBC osu-benchmarks
 
 bin_PROGRAMS =
 
