@@ -34,62 +34,70 @@ int main (int argc, char **argv)
     }
   MPI_Barrier(MPI_COMM_WORLD);
 
-  std::vector<MPI_Request> requests(dests.size());
-  MPI_Request barrier_request;
 
-  unsigned int send_val = 12345, recv_val=0, send_step=0;
+
+
+  std::vector<MPI_Request> requests(dests.size());
+  MPI_Request barrier = MPI_REQUEST_NULL;
+
+  unsigned int send_val = 12345, recv_val=0, send_step=0, recv_cnt=0;
   int tag = 100;
 
+
+  double starttime = MPI_Wtime();
 
   // Start sends
   for (std::set<unsigned int>::const_iterator it = dests.begin();
        it!=dests.end(); ++it)
-    MPI_Issend (&send_val, 1, MPI_UNSIGNED, *it,
-		tag, MPI_COMM_WORLD, &requests[send_step++]);
+    MPI_Issend (&send_val, 1, MPI_UNSIGNED,
+		*it, tag, MPI_COMM_WORLD,
+		&requests[send_step++]);
 
-  bool done=false, barrier_act=false;
 
-  MPI_Status status;
-
-  while (!done)
+  for (int done=0, msg=0; !done; msg=0)
     {
-      int flag=0;
-
       MPI_Iprobe (MPI_ANY_SOURCE, tag, MPI_COMM_WORLD,
-		  &flag, &status);
+		  &msg, MPI_STATUS_IGNORE);
 
-      if (flag)
+      if (msg)
 	{
 	  MPI_Recv (&recv_val, 1, MPI_UNSIGNED,
-		    status.MPI_SOURCE, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		    MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	  recv_cnt++;
 	  //std::cout << send_val << " " << recv_val << std::endl;
 	}
 
-      if (barrier_act)
+      if (barrier == MPI_REQUEST_NULL)
 	{
-	  flag=0;
-	  MPI_Test (&barrier_request, &flag, MPI_STATUS_IGNORE);
-	  if (flag)
+	  int sent=0;
+	  MPI_Testall (requests.size(), &requests[0], &sent, MPI_STATUSES_IGNORE);
+	  if (sent)
 	    {
-	      std::cout << "Rank " << procid << " is done.\n";
-	      done = true;
+	      std::cout << "Rank " << procid << " reached barrier.\n";
+	      MPI_Ibarrier (MPI_COMM_WORLD, &barrier);
 	    }
 	}
       else
 	{
-	  flag=0;
-	  MPI_Testall (requests.size(), &requests[0], &flag, MPI_STATUS_IGNORE);
+	  MPI_Test (&barrier, &done, MPI_STATUS_IGNORE);
+	  if (done) std::cout << "Rank " << procid << " is done, received " << recv_cnt << " values.\n";
+	}
 
-	  if (flag)
+      if ((MPI_Wtime() - starttime) > 5)
+	{
+	  std::cerr << "\nRank " << procid << " has not completed in 5 sec!!\n";
+	  for (unsigned int i=0; i<requests.size(); i++)
 	    {
-	      std::cout << "Rank " << procid << " reached barrier.\n";
-	      MPI_Ibarrier (MPI_COMM_WORLD, &barrier_request);
-	      barrier_act = true;
+	      int finished=0;
+	      MPI_Test (&requests[i], &finished, MPI_STATUS_IGNORE);
+	      if (!finished)
+		std::cout << " comm " << i << " not finished\n";
 	    }
+	  MPI_Abort(MPI_COMM_WORLD, 1);
 	}
     }
 
-  // MPI_Win_free (&win);
+  MPI_Barrier (MPI_COMM_WORLD);
   MPI_Finalize();
 
   return 0;
