@@ -43,7 +43,7 @@ int main (int argc, char **argv)
   double elapsed_time=0.;
   unsigned int recv_cnt=0;
 
-  for (unsigned int cnt=0; cnt<nrep; cnt++, recv_cnt=0)
+  for (unsigned int cnt=0; cnt<nrep; cnt++)
     {
       recv_cnt=0;
       std::vector<MPI_Request> requests(dests.size());
