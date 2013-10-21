@@ -33,7 +33,7 @@ AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true], [mpi_ibarrier=false])
 # Checks for library functions.
 
 # Configure subpackages
-AC_CONFIG_SUBDIRS([libNBC osu-benchmarks])
+AC_CONFIG_SUBDIRS([osu-benchmarks])
 
 # Set up output files
 AC_CONFIG_FILES([Makefile])
