@@ -42,6 +42,7 @@ int main (int argc, char **argv)
   //--------------------------------------------------------
   double elapsed_time=0.;
   unsigned int recv_cnt=0;
+  unsigned int recv_loop=0;
 
   for (unsigned int cnt=0; cnt<nrep; cnt++)
     {
@@ -63,7 +64,7 @@ int main (int argc, char **argv)
 
 
       // enter recv loop
-      for (int done=0, msg_waiting=0, all_sent=0; !done; msg_waiting=0)
+      for (int done=0, msg_waiting=0, all_sent=0; !done; msg_waiting=0, ++recv_loop)
 	{
 	  MPI_Iprobe (MPI_ANY_SOURCE, tag, MPI_COMM_WORLD,
 		      &msg_waiting, MPI_STATUS_IGNORE);
@@ -112,7 +113,7 @@ int main (int argc, char **argv)
 
       if (proc == procid)
 	std::cout << "Rank " << procid << " is done, received " << recv_cnt << " values in "
-		  << (elapsed_time/nrep)*1e6 << " (us).\n";
+		  << (elapsed_time/nrep)*1e6 << " (us), recv_loop = " << recv_loop << "\n";
     }
 
 
