@@ -11,7 +11,7 @@
 #include <numeric>
 #include <boost/timer.hpp>
 #include <mpi.h>
-
+#include <process_cmdline.h>
 
 
 namespace
@@ -146,6 +146,7 @@ void read_c (std::vector<double> &data)
 int main (int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
+  MPI_Playground::process_command_line (argc, argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
@@ -155,11 +156,16 @@ int main (int argc, char **argv)
     std::vector<double> data;
     init_vector(data);
 
-    MPI_Barrier(MPI_COMM_WORLD); /**/ write_xdr(data);
-    MPI_Barrier(MPI_COMM_WORLD); /**/ read_xdr(data);
 
-    MPI_Barrier(MPI_COMM_WORLD); /**/ write_c(data);
-    MPI_Barrier(MPI_COMM_WORLD); /**/ read_c(data);
+    if (MPI_Playground::Options::write) {
+      MPI_Barrier(MPI_COMM_WORLD); /**/ write_xdr(data);
+      MPI_Barrier(MPI_COMM_WORLD); /**/ write_c(data);
+    }
+
+    if (MPI_Playground::Options::read) {
+      MPI_Barrier(MPI_COMM_WORLD); /**/ read_xdr(data);
+      MPI_Barrier(MPI_COMM_WORLD); /**/ read_c(data);
+    }
   }
 
   MPI_Finalize();
