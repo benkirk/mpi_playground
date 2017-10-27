@@ -86,7 +86,29 @@ void write_c (std::vector<double> &data)
   fclose (fp);
 
   std::cout << "Proc " << rank << " "
-            << "C:\t Wrote " << data.size()*sizeof(double)/1.e6
+            << "C: Wrote " << data.size()*sizeof(double)/1.e6
+	    << "MB " << t.elapsed() << " seconds\n";
+}
+
+
+
+void read_c (std::vector<double> &data)
+{
+  boost::timer t;
+
+  std::string fname = io_basename + ".bin";
+  FILE *fp = fopen(fname.c_str(), "r");
+
+  fread (data.empty() ? NULL : &data[0],
+         sizeof(double),
+         data.size(),
+         fp);
+
+  fflush (fp);
+  fclose (fp);
+
+  std::cout << "Proc " << rank << " "
+            << "C: Read  " << data.size()*sizeof(double)/1.e6
 	    << "MB " << t.elapsed() << " seconds\n";
 }
 
@@ -104,7 +126,9 @@ int main (int argc, char **argv)
     std::vector<double> data; /**/ init_vector(data);
 
     MPI_Barrier(MPI_COMM_WORLD); /**/ write_xdr(data);
+
     MPI_Barrier(MPI_COMM_WORLD); /**/ write_c(data);
+    MPI_Barrier(MPI_COMM_WORLD); /**/ read_c(data);
   }
 
   MPI_Finalize();
