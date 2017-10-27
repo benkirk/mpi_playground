@@ -29,6 +29,17 @@ void init_vector (std::vector<T> &data)
   boost::timer t;
   data.resize(BUFSIZE);
 
+  if (!MPI_Playground::Options::write)
+    {
+      std::cout << "Proc " << rank << " "
+            << "Allocated "
+            << BUFSIZE
+            << " values in "
+            << t.elapsed()
+            << " seconds\n";
+      return;
+    }
+
   std::iota(data.begin(), data.end(), static_cast<T>(rank));
 
   std::cout << "Proc " << rank << " "
