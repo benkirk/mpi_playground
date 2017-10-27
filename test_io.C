@@ -160,10 +160,12 @@ int main (int argc, char **argv)
   MPI_Playground::process_command_line (argc, argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  const bool print_aggregate = (rank == 0) && (nprocs > 1);
 
   io_basename += std::string(std::to_string(rank));
 
   {
+    boost::timer t;
     std::vector<double> data;
     init_vector(data);
 
@@ -171,48 +173,48 @@ int main (int argc, char **argv)
     if (MPI_Playground::Options::write)
       {
         {
-          boost::timer t;
+          t.restart();
           write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (nprocs != 1)
+          if (print_aggregate)
             std::cout << std::string(80, '-') << '\n'
-                      << "Aggregate XDR write bw "
+                      << "--> Aggregate XDR write bw "
                       << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << "MB/s\n";
+                      << " MB/s\n";
         }
         {
-          boost::timer t;
+          t.restart();
           write_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (nprocs != 1)
+          if (print_aggregate)
             std::cout << std::string(80, '-') << '\n'
-                      << "Aggregate C write bw "
+                      << "--> Aggregate C write bw "
                       << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << "MB/s\n";
+                      << " MB/s\n";
         }
       }
 
     if (MPI_Playground::Options::read)
       {
         {
-          boost::timer t;
+          t.restart();
           read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (nprocs != 1)
+          if (print_aggregate)
             std::cout << std::string(80, '-') << '\n'
-                      << "Aggregate XDR read bw "
+                      << "--> Aggregate XDR read bw "
                       << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << "MB/s\n";
+                      << " MB/s\n";
         }
         {
-          boost::timer t;
+          t.restart();
           read_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (nprocs != 1)
+          if (print_aggregate)
             std::cout << std::string(80, '-') << '\n'
-                      << "Aggregate C read bw "
+                      << "--> Aggregate C read bw "
                       << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << "MB/s\n";
+                      << " MB/s\n";
         }
       }
   }
