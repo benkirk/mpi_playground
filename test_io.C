@@ -13,6 +13,7 @@
 #include <mpi.h>
 
 
+
 namespace
 {
   static const std::size_t BUFSIZE = 2e8;
@@ -36,7 +37,6 @@ void init_vector (std::vector<T> &data)
             << " values in "
             << t.elapsed()
             << " seconds\n";
-
 }
 
 
@@ -64,7 +64,36 @@ void write_xdr (std::vector<double> &data)
   fclose (fp);
 
   std::cout << "Proc " << rank << " "
-            << "XDR:\t Wrote " << data.size()*sizeof(double)/1.e6
+            << "XDR: Wrote " << data.size()*sizeof(double)/1.e6
+	    << "MB in " << t.elapsed() << " seconds\n";
+}
+
+
+
+void read_xdr (std::vector<double> &data)
+{
+  boost::timer t;
+
+  XDR *xdrs = new XDR;
+  std::string fname = io_basename + ".xdr";
+  FILE  *fp = fopen(fname.c_str(), "r");
+
+  xdrstdio_create (xdrs, fp, XDR_DECODE);
+
+  xdr_vector(xdrs,
+	     (char*) &data[0],
+	     data.size(),
+	     sizeof(double),
+	     (xdrproc_t) xdr_double);
+
+  xdr_destroy (xdrs);
+  delete xdrs;
+
+  fflush (fp);
+  fclose (fp);
+
+  std::cout << "Proc " << rank << " "
+            << "XDR: Read  " << data.size()*sizeof(double)/1.e6
 	    << "MB in " << t.elapsed() << " seconds\n";
 }
 
@@ -123,9 +152,11 @@ int main (int argc, char **argv)
   io_basename += std::string(std::to_string(rank));
 
   {
-    std::vector<double> data; /**/ init_vector(data);
+    std::vector<double> data;
+    init_vector(data);
 
     MPI_Barrier(MPI_COMM_WORLD); /**/ write_xdr(data);
+    MPI_Barrier(MPI_COMM_WORLD); /**/ read_xdr(data);
 
     MPI_Barrier(MPI_COMM_WORLD); /**/ write_c(data);
     MPI_Barrier(MPI_COMM_WORLD); /**/ read_c(data);
