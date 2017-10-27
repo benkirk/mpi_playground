@@ -17,7 +17,7 @@ namespace
 {
   static const std::size_t BUFSIZE = 2e8;
   int rank, nprocs;
-  std::string basename = "test.";
+  std::string io_basename = "test.";
 }
 
 
@@ -46,7 +46,7 @@ void write_xdr (std::vector<double> &data)
   boost::timer t;
 
   XDR *xdrs = new XDR;
-  std::string fname = basename + ".xdr";
+  std::string fname = io_basename + ".xdr";
   FILE  *fp = fopen(fname.c_str(), "w");
 
   xdrstdio_create (xdrs, fp, XDR_ENCODE);
@@ -74,7 +74,7 @@ void write_c (std::vector<double> &data)
 {
   boost::timer t;
 
-  std::string fname = basename + ".bin";
+  std::string fname = io_basename + ".bin";
   FILE *fp = fopen(fname.c_str(), "w");
 
   fwrite (data.empty() ? NULL : &data[0],
@@ -98,13 +98,13 @@ int main (int argc, char **argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-  basename += std::string(std::to_string(rank));
+  io_basename += std::string(std::to_string(rank));
 
   {
     std::vector<double> data; /**/ init_vector(data);
 
-    write_xdr(data);
-    write_c(data);
+    MPI_Barrier(MPI_COMM_WORLD); /**/ write_xdr(data);
+    MPI_Barrier(MPI_COMM_WORLD); /**/ write_c(data);
   }
 
   MPI_Finalize();
