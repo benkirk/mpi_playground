@@ -1,8 +1,6 @@
-#include <random>
 #include <algorithm>
 #include <iterator>
 #include <iostream>
-#include <functional>
 #include <iostream>
 #include <vector>
 #include <rpc/rpc.h>
@@ -22,8 +20,15 @@ namespace
 }
 
 
+
 void print_bw (const std::string &label, const std::size_t bytes, const double time)
 {
+  if (rank) return;
+
+  std::cout << label << " "
+            << bytes/1e6 << " MB, "
+            << time  << " s, "
+            << static_cast<double>(bytes)/1.e6/time << " MB/s\n";
 }
 
 
@@ -31,28 +36,20 @@ void print_bw (const std::string &label, const std::size_t bytes, const double t
 template <typename T>
 void init_vector (std::vector<T> &data)
 {
-  boost::timer t;
+  boost::timer timer;
   data.resize(BUFSIZE);
 
   if (!MPI_Playground::Options::write)
     {
-      std::cout << "Proc " << rank << " "
-            << "Allocated "
-            << BUFSIZE
-            << " values in "
-            << t.elapsed()
-            << " seconds\n";
+      MPI_Barrier(MPI_COMM_WORLD);
+      print_bw ("Allocated", nprocs*BUFSIZE*sizeof(double), timer.elapsed());
       return;
     }
 
-  std::iota(data.begin(), data.end(), static_cast<T>(rank));
+  std::iota(data.begin(), data.end(), static_cast<T>(rank*BUFSIZE));
 
-  std::cout << "Proc " << rank << " "
-            << "Initialized "
-            << BUFSIZE
-            << " values in "
-            << t.elapsed()
-            << " seconds\n";
+  MPI_Barrier(MPI_COMM_WORLD);
+  print_bw ("Initialized", nprocs*BUFSIZE*sizeof(double), timer.elapsed());
 }
 
 
@@ -79,9 +76,9 @@ void write_xdr (std::vector<double> &data)
   fflush (fp);
   fclose (fp);
 
-  std::cout << "Proc " << rank << " "
-            << "XDR: Wrote " << data.size()*sizeof(double)/1.e6
-	    << "MB in " << t.elapsed() << " seconds\n";
+  // std::cout << "Proc " << rank << " "
+  //           << "XDR: Wrote " << data.size()*sizeof(double)/1.e6
+  //           << "MB in " << t.elapsed() << " seconds\n";
 }
 
 
@@ -108,9 +105,9 @@ void read_xdr (std::vector<double> &data)
   fflush (fp);
   fclose (fp);
 
-  std::cout << "Proc " << rank << " "
-            << "XDR: Read  " << data.size()*sizeof(double)/1.e6
-	    << "MB in " << t.elapsed() << " seconds\n";
+  // std::cout << "Proc " << rank << " "
+  //           << "XDR: Read  " << data.size()*sizeof(double)/1.e6
+  //           << "MB in " << t.elapsed() << " seconds\n";
 }
 
 
@@ -130,9 +127,9 @@ void write_c (std::vector<double> &data)
   fflush (fp);
   fclose (fp);
 
-  std::cout << "Proc " << rank << " "
-            << "C: Wrote " << data.size()*sizeof(double)/1.e6
-	    << "MB " << t.elapsed() << " seconds\n";
+  // std::cout << "Proc " << rank << " "
+  //           << "C: Wrote " << data.size()*sizeof(double)/1.e6
+  //           << "MB " << t.elapsed() << " seconds\n";
 }
 
 
@@ -152,9 +149,9 @@ void read_c (std::vector<double> &data)
   fflush (fp);
   fclose (fp);
 
-  std::cout << "Proc " << rank << " "
-            << "C: Read  " << data.size()*sizeof(double)/1.e6
-	    << "MB " << t.elapsed() << " seconds\n";
+  // std::cout << "Proc " << rank << " "
+  //           << "C: Read  " << data.size()*sizeof(double)/1.e6
+  //           << "MB " << t.elapsed() << " seconds\n";
 }
 
 
@@ -181,21 +178,13 @@ int main (int argc, char **argv)
           t.restart();
           write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (print_aggregate)
-            std::cout << std::string(80, '-') << '\n'
-                      << "--> Aggregate XDR write bw "
-                      << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << " MB/s\n";
+          print_bw("--> Aggregate XDR write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
         }
         {
           t.restart();
           write_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (print_aggregate)
-            std::cout << std::string(80, '-') << '\n'
-                      << "--> Aggregate C write bw "
-                      << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << " MB/s\n";
+          print_bw("--> Aggregate C   write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
         }
       }
 
@@ -205,21 +194,13 @@ int main (int argc, char **argv)
           t.restart();
           read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (print_aggregate)
-            std::cout << std::string(80, '-') << '\n'
-                      << "--> Aggregate XDR read bw "
-                      << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << " MB/s\n";
+          print_bw("--> Aggregate XDR read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
         }
         {
           t.restart();
           read_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          if (print_aggregate)
-            std::cout << std::string(80, '-') << '\n'
-                      << "--> Aggregate C read bw "
-                      << nprocs*data.size()*sizeof(double)/1.e6/t.elapsed()
-                      << " MB/s\n";
+          print_bw("--> Aggregate C   read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
         }
       }
   }
