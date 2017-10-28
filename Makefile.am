@@ -1,5 +1,9 @@
 SUBDIRS = osu-benchmarks
 
+LDFLAGS  = $(HDF5_LDFLAGS)
+LIBS     = $(HDF5_LDFLAGS) $(HDF5_LIBS)
+
+
 bin_PROGRAMS =
 
 bin_PROGRAMS     += ibarrier one_sided nonblocking_consensus alltoall test_io
@@ -13,8 +17,6 @@ alltoall_SOURCES              = alltoall.C random_in_range.C random_in_range.h p
 test_io_SOURCES = test_io.C process_cmdline.C process_cmdline.h
 test_io_CXXFLAGS = -std=c++11 -O2
 test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
-test_io_LDFLAGS  = $(HDF5_LDFLAGS)
-test_io_LIBS     = $(HDF5_LDFLAGS) $(HDF5_LIBS)
 
 DISTCLEANFILES = *~
 
