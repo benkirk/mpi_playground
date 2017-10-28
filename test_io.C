@@ -22,6 +22,11 @@ namespace
 }
 
 
+void print_bw (const std::string &label, const std::size_t bytes, const double time)
+{
+}
+
+
 
 template <typename T>
 void init_vector (std::vector<T> &data)
