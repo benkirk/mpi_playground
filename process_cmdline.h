@@ -5,20 +5,39 @@
 
 namespace MPI_Playground {
 
-  namespace Options
+  class Options
   {
-    extern unsigned int nrep;
-    extern bool write;
-    extern bool read;
+  public:
+    unsigned int nrep;
+    bool write;
+    bool read;
+    bool do_xdr;
+    bool do_c;
+    unsigned int nbytes;
+    unsigned int bufsize;
+
+    Options ()
+    {
+      //default values
+      nrep = 100;
+      write = true;
+      read  = true;
+      do_xdr = true;
+      do_c = true;
+      nbytes = 2e9;
+      bufsize = nbytes / sizeof(double);
+    }
+
   };
 
+  extern Options opts;
 
   void process_command_line (const int argc, char** argv,
 			     unsigned int &nrep);
 
   inline void process_command_line (const int argc, char** argv)
   {
-    process_command_line(argc, argv, Options::nrep);
+    process_command_line(argc, argv, opts.nrep);
   }
 
 }

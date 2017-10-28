@@ -12,9 +12,10 @@
 #include <process_cmdline.h>
 
 
+using namespace MPI_Playground;
+
 namespace
 {
-  static const std::size_t BUFSIZE = 2e8;
   int rank, nprocs;
   std::string io_basename = "test.";
 }
@@ -37,19 +38,19 @@ template <typename T>
 void init_vector (std::vector<T> &data)
 {
   boost::timer timer;
-  data.resize(BUFSIZE);
+  data.resize(opts.bufsize);
 
-  if (!MPI_Playground::Options::write)
+  if (!opts.write)
     {
       MPI_Barrier(MPI_COMM_WORLD);
-      print_bw ("Allocated", nprocs*BUFSIZE*sizeof(double), timer.elapsed());
+      print_bw ("Allocated", nprocs*data.size()*sizeof(double), timer.elapsed());
       return;
     }
 
-  std::iota(data.begin(), data.end(), static_cast<T>(rank*BUFSIZE));
+  std::iota(data.begin(), data.end(), static_cast<T>(rank*data.size()));
 
   MPI_Barrier(MPI_COMM_WORLD);
-  print_bw ("Initialized", nprocs*BUFSIZE*sizeof(double), timer.elapsed());
+  print_bw ("Initialized", nprocs*data.size()*sizeof(double), timer.elapsed());
 }
 
 
@@ -159,7 +160,7 @@ void read_c (std::vector<double> &data)
 int main (int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
-  MPI_Playground::process_command_line (argc, argv);
+  process_command_line (argc, argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
   const bool print_aggregate = (rank == 0) && (nprocs > 1);
@@ -172,36 +173,40 @@ int main (int argc, char **argv)
     init_vector(data);
 
 
-    if (MPI_Playground::Options::write)
+    if (opts.write)
       {
-        {
-          t.restart();
-          write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
+        if (opts.do_xdr)
+          {
+            t.restart();
+            write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          print_bw("--> Aggregate XDR write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
-        }
-        {
-          t.restart();
-          write_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
+            print_bw("--> Aggregate XDR write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+          }
+        if (opts.do_c)
+          {
+            t.restart();
+            write_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          print_bw("--> Aggregate C   write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
-        }
+            print_bw("--> Aggregate C   write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+          }
       }
 
-    if (MPI_Playground::Options::read)
+    if (opts.read)
       {
-        {
-          t.restart();
-          read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
+        if (opts.do_xdr)
+          {
+            t.restart();
+            read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          print_bw("--> Aggregate XDR read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
-        }
-        {
-          t.restart();
-          read_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
+            print_bw("--> Aggregate XDR read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+          }
+        if (opts.do_c)
+          {
+            t.restart();
+            read_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-          print_bw("--> Aggregate C   read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
-        }
+            print_bw("--> Aggregate C   read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+          }
       }
   }
 

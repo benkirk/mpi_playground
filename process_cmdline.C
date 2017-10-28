@@ -5,22 +5,16 @@
 
 namespace MPI_Playground {
 
-  //default values
-  namespace Options {
-    unsigned int nrep = 100;
-    bool write = true;
-    bool read  = true;
-  }
-
+  Options opts;
 
   void process_command_line (const int argc, char** argv,
 			     unsigned int &nrep)
   {
     // default values
-    nrep = Options::nrep;
+    nrep = opts.nrep;
 
     char optionStr[] =
-      "n:rwRWh?";
+      "n:S:rwRWxch?";
 
     int opt;
     while ((opt = getopt(argc, argv, optionStr)) != -1)
@@ -28,25 +22,37 @@ namespace MPI_Playground {
 	switch (opt)
 	  {
 	  case 'n':
-            Options::nrep = nrep = std::atoi(optarg);
+            opts.nrep = nrep = std::atoi(optarg);
 	    break;
 
           case 'r':
-            Options::read = true;
+            opts.read = true;
             break;
 
           case 'R':
-            Options::write = false;
+            opts.write = false;
             break;
 
           case 'w':
-            Options::write = true;
+            opts.write = true;
             break;
 
           case 'W':
-            Options::read = false;
+            opts.read = false;
             break;
 
+          case 'x':
+            opts.do_xdr = !opts.do_xdr;
+            break;
+
+          case 'c':
+            opts.do_c = !opts.do_c;
+            break;
+
+          case 'S':
+            opts.nbytes  = static_cast<unsigned int>(std::atof(optarg));
+            opts.bufsize = opts.nbytes / sizeof(double);
+            break;
 	  }
       }
   }

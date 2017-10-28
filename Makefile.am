@@ -15,4 +15,9 @@ test_io_CXXFLAGS = -std=c++11 -O2
 
 DISTCLEANFILES = *~
 
-MOSTLYCLEANFILES = test.*.xdr test.*.bin
+ouput_files = test.*.xdr test.*.bin
+
+MOSTLYCLEANFILES = $(ouput_files)
+
+cleandata:
+	rm -f $(ouput_files)
