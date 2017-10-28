@@ -1,7 +1,7 @@
 SUBDIRS = osu-benchmarks
 
 AM_LDFLAGS = $(HDF5_LDFLAGS)
-LIBS     = $(HDF5_LDFLAGS) $(HDF5_LIBS)
+LIBS       = $(HDF5_LIBS)
 
 
 bin_PROGRAMS =
@@ -14,7 +14,44 @@ one_sided_SOURCES = one_sided.C
 nonblocking_consensus_SOURCES = nonblocking_consensus.C random_in_range.C random_in_range.h process_cmdline.C process_cmdline.h
 alltoall_SOURCES              = alltoall.C random_in_range.C random_in_range.h process_cmdline.C process_cmdline.h
 
-test_io_SOURCES = test_io.C process_cmdline.C process_cmdline.h
+
+highfive_sources = \
+     H5/include/highfive/bits/H5Annotate_traits.hpp \
+     H5/include/highfive/bits/H5Annotate_traits_misc.hpp \
+     H5/include/highfive/bits/H5Attribute_misc.hpp \
+     H5/include/highfive/bits/H5Converter_misc.hpp \
+     H5/include/highfive/bits/H5DataSet_misc.hpp \
+     H5/include/highfive/bits/H5Dataspace_misc.hpp \
+     H5/include/highfive/bits/H5DataType_misc.hpp \
+     H5/include/highfive/bits/H5Exception_misc.hpp \
+     H5/include/highfive/bits/H5File_misc.hpp \
+     H5/include/highfive/bits/H5FileDriver_misc.hpp \
+     H5/include/highfive/bits/H5Group_misc.hpp \
+     H5/include/highfive/bits/H5Iterables_misc.hpp \
+     H5/include/highfive/bits/H5Node_traits.hpp \
+     H5/include/highfive/bits/H5Node_traits_misc.hpp \
+     H5/include/highfive/bits/H5Object_misc.hpp \
+     H5/include/highfive/bits/H5PropertyList_misc.hpp \
+     H5/include/highfive/bits/H5Selection_misc.hpp \
+     H5/include/highfive/bits/H5Slice_traits.hpp \
+     H5/include/highfive/bits/H5Slice_traits_misc.hpp \
+     H5/include/highfive/bits/H5Utils.hpp \
+     H5/include/highfive/H5Attribute.hpp \
+     H5/include/highfive/H5DataSet.hpp \
+     H5/include/highfive/H5DataSpace.hpp \
+     H5/include/highfive/H5DataType.hpp \
+     H5/include/highfive/H5Exception.hpp \
+     H5/include/highfive/H5File.hpp \
+     H5/include/highfive/H5FileDriver.hpp \
+     H5/include/highfive/H5Group.hpp \
+     H5/include/highfive/H5Object.hpp \
+     H5/include/highfive/H5PropertyList.hpp \
+     H5/include/highfive/H5Selection.hpp \
+     H5/include/highfive/H5Utility.hpp
+
+
+
+test_io_SOURCES = test_io.C process_cmdline.C process_cmdline.h $(highfive_sources)
 test_io_CXXFLAGS = -std=c++11 -O2
 test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
