@@ -1,3 +1,6 @@
+#include "mpi_play_config.h"
+#include "process_cmdline.h"
+
 #include <algorithm>
 #include <iterator>
 #include <iostream>
@@ -9,13 +12,13 @@
 #include <numeric>
 #include <boost/timer.hpp>
 #include <mpi.h>
-#include <process_cmdline.h>
 
-#include <highfive/H5File.hpp>
-#include <highfive/H5DataSet.hpp>
-#include <highfive/H5DataSpace.hpp>
-
+#ifdef HAVE_HDF5
+#  include <highfive/H5File.hpp>
+#  include <highfive/H5DataSet.hpp>
+#  include <highfive/H5DataSpace.hpp>
 using namespace HighFive;
+#endif
 
 using namespace MPI_Playground;
 
@@ -149,6 +152,8 @@ void read_c (std::vector<double> &data)
 
 
 
+#ifdef HAVE_HDF5
+
 void write_h5 (std::vector<double> &data)
 {
   boost::timer t;
@@ -184,6 +189,7 @@ void read_h5 (std::vector<double> &data)
   // we convert the hdf5 dataset to a single dimension vector
   dataset.read(data);
 }
+#endif // #ifdef HAVE_HDF5
 
 
 
@@ -209,23 +215,22 @@ int main (int argc, char **argv)
           {
             t.restart();
             write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
-
             print_bw("--> Aggregate XDR  write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
         if (opts.do_c)
           {
             t.restart();
             write_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
-
             print_bw("--> Aggregate C    write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
+#ifdef HAVE_HDF5
         if (opts.do_h5)
           {
             t.restart();
             write_h5(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
-
             print_bw("--> Aggregate HDF5 write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
+#endif
       }
 
     if (opts.read)
@@ -234,23 +239,22 @@ int main (int argc, char **argv)
           {
             t.restart();
             read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
-
             print_bw("--> Aggregate XDR  read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
         if (opts.do_c)
           {
             t.restart();
             read_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
-
             print_bw("--> Aggregate C    read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
+#ifdef HAVE_HDF5
         if (opts.do_h5)
           {
             t.restart();
             read_h5(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
-
             print_bw("--> Aggregate HDF5 read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
+#endif
       }
   }
 
