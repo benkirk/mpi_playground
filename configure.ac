@@ -9,12 +9,9 @@ AC_MSG_RESULT(---------------------------------------------)
 AC_CONFIG_SRCDIR([ibarrier.C])
 AC_CONFIG_HEADERS([mpi_play_config.h])
 AC_CONFIG_AUX_DIR([build-aux])
-#AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([dist-bzip2 color-tests 1.11])
-
-# use silent rules - automake 1.11
-AM_SILENT_RULES(yes)
 
 # Checks for programs.
 AC_PROG_CXX([mpicxx mpic++ mpiCC])
@@ -31,6 +28,10 @@ AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true], [mpi_ibarrier=false])
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
+
+# Check for external libraries
+## Check for HDF5 support
+AX_LIB_HDF5()
 
 # Configure subpackages
 AC_CONFIG_SUBDIRS([osu-benchmarks])

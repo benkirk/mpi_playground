@@ -13,6 +13,7 @@ namespace MPI_Playground {
     bool read;
     bool do_xdr;
     bool do_c;
+    bool do_h5;
     unsigned int nbytes;
     unsigned int bufsize;
 
@@ -24,6 +25,7 @@ namespace MPI_Playground {
       read  = true;
       do_xdr = true;
       do_c = true;
+      do_h5 = true;
       nbytes = 2e9;
       bufsize = nbytes / sizeof(double);
     }

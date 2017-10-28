@@ -11,6 +11,11 @@
 #include <mpi.h>
 #include <process_cmdline.h>
 
+#include <highfive/H5File.hpp>
+#include <highfive/H5DataSet.hpp>
+#include <highfive/H5DataSpace.hpp>
+
+using namespace HighFive;
 
 using namespace MPI_Playground;
 
@@ -20,6 +25,7 @@ namespace
   std::string io_basename = "test.";
   const unsigned int bytes_per_MB = 1024 * 1024;
   const unsigned int bytes_per_GB = bytes_per_MB * 1024;
+  const std::string DATASET_NAME("dset");
 }
 
 
@@ -78,10 +84,6 @@ void write_xdr (std::vector<double> &data)
 
   fflush (fp);
   fclose (fp);
-
-  // std::cout << "Proc " << rank << " "
-  //           << "XDR: Wrote " << data.size()*sizeof(double)/1.e6
-  //           << "MB in " << t.elapsed() << " seconds\n";
 }
 
 
@@ -107,10 +109,6 @@ void read_xdr (std::vector<double> &data)
 
   fflush (fp);
   fclose (fp);
-
-  // std::cout << "Proc " << rank << " "
-  //           << "XDR: Read  " << data.size()*sizeof(double)/1.e6
-  //           << "MB in " << t.elapsed() << " seconds\n";
 }
 
 
@@ -129,10 +127,6 @@ void write_c (std::vector<double> &data)
 
   fflush (fp);
   fclose (fp);
-
-  // std::cout << "Proc " << rank << " "
-  //           << "C: Wrote " << data.size()*sizeof(double)/1.e6
-  //           << "MB " << t.elapsed() << " seconds\n";
 }
 
 
@@ -151,10 +145,44 @@ void read_c (std::vector<double> &data)
 
   fflush (fp);
   fclose (fp);
+}
 
-  // std::cout << "Proc " << rank << " "
-  //           << "C: Read  " << data.size()*sizeof(double)/1.e6
-  //           << "MB " << t.elapsed() << " seconds\n";
+
+
+void write_h5 (std::vector<double> &data)
+{
+  boost::timer t;
+
+  std::string fname = io_basename + ".h5";
+
+  // we create a new hdf5 file
+  File file(fname, File::ReadWrite | File::Create | File::Truncate);
+
+  // lets create a dataset of native double  with the size of the vector
+  // 'data'
+  DataSet dataset =
+    file.createDataSet<double>(DATASET_NAME, DataSpace::From(data));
+
+  // lets write our vector of int to the HDF5 dataset
+  dataset.write(data); /**/ file.flush();
+}
+
+
+
+void read_h5 (std::vector<double> &data)
+{
+  boost::timer t;
+
+  std::string fname = io_basename + ".h5";
+
+  // we create a new hdf5 file
+  File file(fname, File::ReadOnly);
+
+  // we get the dataset
+  DataSet dataset = file.getDataSet(DATASET_NAME);
+
+  // we convert the hdf5 dataset to a single dimension vector
+  dataset.read(data);
 }
 
 
@@ -182,14 +210,21 @@ int main (int argc, char **argv)
             t.restart();
             write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-            print_bw("--> Aggregate XDR write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+            print_bw("--> Aggregate XDR  write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
         if (opts.do_c)
           {
             t.restart();
             write_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-            print_bw("--> Aggregate C   write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+            print_bw("--> Aggregate C    write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+          }
+        if (opts.do_h5)
+          {
+            t.restart();
+            write_h5(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
+
+            print_bw("--> Aggregate HDF5 write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
       }
 
@@ -200,14 +235,21 @@ int main (int argc, char **argv)
             t.restart();
             read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-            print_bw("--> Aggregate XDR read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+            print_bw("--> Aggregate XDR  read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
         if (opts.do_c)
           {
             t.restart();
             read_c(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
 
-            print_bw("--> Aggregate C   read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+            print_bw("--> Aggregate C    read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+          }
+        if (opts.do_h5)
+          {
+            t.restart();
+            read_h5(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
+
+            print_bw("--> Aggregate HDF5 read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
       }
   }

@@ -12,10 +12,13 @@ alltoall_SOURCES              = alltoall.C random_in_range.C random_in_range.h p
 
 test_io_SOURCES = test_io.C process_cmdline.C process_cmdline.h
 test_io_CXXFLAGS = -std=c++11 -O2
+test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
+test_io_LDFLAGS  = $(HDF5_LDFLAGS)
+test_io_LIBS     = $(HDF5_LDFLAGS) $(HDF5_LIBS)
 
 DISTCLEANFILES = *~
 
-ouput_files = test.*.xdr test.*.bin
+ouput_files = test.*.xdr test.*.bin test.*.h5
 
 MOSTLYCLEANFILES = $(ouput_files)
 
