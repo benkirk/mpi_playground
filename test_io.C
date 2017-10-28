@@ -18,6 +18,8 @@ namespace
 {
   int rank, nprocs;
   std::string io_basename = "test.";
+  const unsigned int bytes_per_MB = 1024 * 1024;
+  const unsigned int bytes_per_GB = bytes_per_MB * 1024;
 }
 
 
@@ -27,9 +29,9 @@ void print_bw (const std::string &label, const std::size_t bytes, const double t
   if (rank) return;
 
   std::cout << label << " "
-            << bytes/1e6 << " MB, "
+            << bytes/bytes_per_MB << " MB, "
             << time  << " s, "
-            << static_cast<double>(bytes)/1.e6/time << " MB/s\n";
+            << static_cast<double>(bytes/bytes_per_MB)/time << " MB/s\n";
 }
 
 
