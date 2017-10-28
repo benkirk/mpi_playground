@@ -1,6 +1,6 @@
 SUBDIRS = osu-benchmarks
 
-LDFLAGS  = $(HDF5_LDFLAGS)
+AM_LDFLAGS = $(HDF5_LDFLAGS)
 LIBS     = $(HDF5_LDFLAGS) $(HDF5_LIBS)
 
 
