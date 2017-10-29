@@ -1,4 +1,8 @@
-SUBDIRS = osu-benchmarks libmesh_apps
+SUBDIRS = osu-benchmarks
+
+if ENABLE_LIBMESH
+  SUBDIRS += libmesh_apps
+endif
 
 AM_LDFLAGS = $(HDF5_LDFLAGS)
 LIBS       = $(HDF5_LIBS)

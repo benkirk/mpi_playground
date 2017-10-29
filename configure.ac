@@ -12,6 +12,8 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([dist-bzip2 color-tests 1.11])
+# use silent rules - automake 1.11
+AM_SILENT_RULES(yes)
 
 CXX_try="mpicxx mpic++ mpiCC"
 CC_try="mpicc"
