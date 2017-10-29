@@ -13,9 +13,35 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([dist-bzip2 color-tests 1.11])
 
+CXX_try="mpicxx mpic++ mpiCC"
+CC_try="mpicc"
+FC_try="mpif90"
+
+#----------------
+# Libmesh Config
+#----------------
+AX_PATH_LIBMESH([have_libmesh=yes], [have_libmesh=no])
+
+# prefer libMesh compilers when available
+if test "$have_libmesh" = "yes"; then
+   CXX_try=`$LIBMESH_CONFIG --cxx`
+   CC_try=`$LIBMESH_CONFIG --cc`
+   FC_try=`$LIBMESH_CONFIG --fc`
+   F77_try=`$LIBMESH_CONFIG --fc`
+   CXXFLAGS="$CXXFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cxxflags`"
+   CFLAGS="$CFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cflags`"
+   FCFLAGS="$FCFLAGS `$LIBMESH_CONFIG --fflags`"
+else
+   # Checks for programs.
+   AC_MSG_RESULT([No functional libMesh found])
+fi
+
+AM_CONDITIONAL(ENABLE_LIBMESH, test x$have_libmesh = xyes)
+
 # Checks for programs.
-AC_PROG_CXX([mpicxx mpic++ mpiCC])
-AC_PROG_CC([mpicc])
+AC_PROG_CXX($CXX_try)
+AC_PROG_CC($CC_try)
+AC_PROG_FC($FC_try)
 
 # Checks for libraries.
 
@@ -37,7 +63,9 @@ AX_LIB_HDF5()
 AC_CONFIG_SUBDIRS([osu-benchmarks])
 
 # Set up output files
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+                 libmesh_apps/Makefile
+                 ])
 AC_OUTPUT
 AC_MSG_RESULT(---------------------------------------------)
 AC_MSG_RESULT(------ Done Configuring MPI Playground ------)
