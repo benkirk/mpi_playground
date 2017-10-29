@@ -61,7 +61,7 @@ if test "${with_libmesh}" != no ; then
                  LIBMESH_CONFIG=$LIBMESH_PREFIX/contrib/bin/libmesh-config,
                  [AC_CHECK_FILE($LIBMESH_PREFIX/bin/libmesh-config,
                                 LIBMESH_CONFIG=$LIBMESH_PREFIX/bin/libmesh-config,
-                                AC_MSG_ERROR([Cannot find libmesh-config!]))
+                                AC_MSG_RESULT([Cannot find libmesh-config!]))
                  ])
 
 
@@ -74,6 +74,8 @@ if test "${with_libmesh}" != no ; then
 	LIBMESH_LIBS=`${LIBMESH_CONFIG} --libs | sed s#"\-Wl,\-rpath,${DEFAULT_SYS_LIB}\ "##g `
 #        echo libmesh libs : $LIBMESH_LIBS
 	LIBMESH_LIBS="${LIBMESH_LIBS} -Wl,-rpath,${DEFAULT_SYS_LIB}"
+    else
+      succeeded=no
     fi
 
     ac_LIBMESH_save_CXXFLAGS="$CXXFLAGS"
@@ -102,10 +104,10 @@ if test "${with_libmesh}" != no ; then
 #         fi
 #     fi
 
-#     if test "$succeeded" = no; then
-#         ifelse([$2],,AC_MSG_ERROR([LIBMESH not found.  Try either --with-libmesh or setting LIBMESH_DIR.]),
-#             [$2])
-#     else
+     if test "$succeeded" = no; then
+         ifelse([$2],,AC_MSG_ERROR([LIBMESH not found.  Try either --with-libmesh or setting LIBMESH_DIR.]),
+             [$2])
+     else
         AC_DEFINE(HAVE_LIBMESH,1,[Define if LIBMESH is available])
 	AC_SUBST(LIBMESH_CONFIG)
         AC_SUBST(LIBMESH_CXXFLAGS)
@@ -113,7 +115,7 @@ if test "${with_libmesh}" != no ; then
         AC_SUBST(LIBMESH_LIBS)
 	AC_SUBST(LIBMESH_PREFIX)
         ifelse([$1],,,[$1])
-#    fi
+    fi
 
 fi
 
