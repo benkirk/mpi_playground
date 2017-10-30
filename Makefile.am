@@ -5,7 +5,7 @@ if ENABLE_LIBMESH
 endif
 
 AM_LDFLAGS = $(HDF5_LDFLAGS)
-LIBS       = $(HDF5_LIBS)
+LIBS       = $(FCLIBS) $(HDF5_LIBS)
 
 
 bin_PROGRAMS =
@@ -55,7 +55,10 @@ highfive_sources = \
 
 
 
-test_io_SOURCES = test_io.C process_cmdline.C process_cmdline.h $(highfive_sources)
+test_io_SOURCES = test_io.C \
+		  test_fortran_io.f90 test_fortran_io.h \
+                  process_cmdline.C process_cmdline.h \
+	          $(highfive_sources)
 test_io_CXXFLAGS = -std=c++11 -O2
 test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 

@@ -14,6 +14,7 @@ namespace MPI_Playground {
     bool do_xdr;
     bool do_c;
     bool do_h5;
+    bool do_fortran;
     unsigned int nbytes;
     unsigned int bufsize;
 
@@ -26,6 +27,7 @@ namespace MPI_Playground {
       do_xdr = true;
       do_c = true;
       do_h5 = true;
+      do_fortran = true;
       nbytes = 2e9;
       bufsize = nbytes / sizeof(double);
     }

@@ -1,5 +1,6 @@
 #include "mpi_play_config.h"
 #include "process_cmdline.h"
+#include "test_fortran_io.h"
 
 #include <algorithm>
 #include <iterator>
@@ -240,6 +241,12 @@ int main (int argc, char **argv)
             print_bw("--> Aggregate HDF5 write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
 #endif
+        if (opts.do_fortran)
+          {
+            t.restart();
+            unsigned int len = data.size();
+            WRITE_FORTRAN(&rank, &len, &data[0]);
+          }
       }
 
     if (opts.read)
@@ -264,6 +271,12 @@ int main (int argc, char **argv)
             print_bw("--> Aggregate HDF5 read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
 #endif
+        if (opts.do_fortran)
+          {
+            t.restart();
+            unsigned int len = data.size();
+            READ_FORTRAN(&rank, &len, &data[0]);
+          }
       }
   }
 

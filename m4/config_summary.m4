@@ -27,6 +27,7 @@ echo CXXFLAGS.......................: $CXXFLAGS
 echo C compiler.................... : $CC
 echo CFLAGS.........................: $CFLAGS
 echo Fortran compiler.............. : $FC
+echo Fortran 77 compiler........... : $F77
 echo FCFLAGS........................: $FCFLAGS
 echo libmesh dir................... : $LIBMESH_PREFIX
 echo libmesh-config................ : $LIBMESH_CONFIG

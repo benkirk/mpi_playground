@@ -19,6 +19,9 @@ AM_SILENT_RULES(yes)
 AC_PROG_CXX([mpicxx mpic++ mpiCC])
 AC_PROG_CC([mpicc])
 AC_PROG_FC([mpif90])
+AC_PROG_F77([mpif90])
+AC_FC_LIBRARY_LDFLAGS
+AC_FC_WRAPPERS
 
 #----------------
 # Libmesh Config
@@ -30,6 +33,7 @@ if test "$have_libmesh" = "yes"; then
    CXX=$($LIBMESH_CONFIG --cxx)
    CC=$($LIBMESH_CONFIG --cc)
    FC=$($LIBMESH_CONFIG --fc)
+   F77=$($LIBMESH_CONFIG --f77)
 
    CXXFLAGS="$CXXFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cxxflags`"
    CFLAGS="$CFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cflags`"

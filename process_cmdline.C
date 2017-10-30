@@ -14,7 +14,7 @@ namespace MPI_Playground {
     nrep = opts.nrep;
 
     char optionStr[] =
-      "n:S:rwRWxcH?";
+      "n:S:rwRWxcHF?";
 
     int opt;
     while ((opt = getopt(argc, argv, optionStr)) != -1)
@@ -51,6 +51,10 @@ namespace MPI_Playground {
 
           case 'H':
             opts.do_h5 = !opts.do_h5;
+            break;
+
+          case 'F':
+            opts.do_fortran = !opts.do_fortran;
             break;
 
           case 'S':
