@@ -222,7 +222,8 @@ int main (int argc, char **argv)
     std::vector<double> data;
     init_vector(data);
 
-
+    //-------------------------------------------------------
+    // write tests
     if (opts.write)
       {
         if (opts.do_xdr)
@@ -254,6 +255,8 @@ int main (int argc, char **argv)
           }
       }
 
+    //-------------------------------------------------------
+    // read tests
     if (opts.read)
       {
         if (opts.do_xdr)
@@ -284,7 +287,6 @@ int main (int argc, char **argv)
             print_bw("--> Aggregate F90  read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
             if (!data.empty() && (data[0] != static_cast<double>(rank*data.size())))
               std::cerr << "Unexpected value read!\n";
-
           }
       }
   }

@@ -64,7 +64,7 @@ test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
 DISTCLEANFILES = *~
 
-ouput_files = test.*.xdr test.*.bin test.*.h5
+ouput_files = test.*.xdr test.*.bin test.*.h5 test.*.fbin
 
 MOSTLYCLEANFILES = $(ouput_files) slurm-*.out
 
