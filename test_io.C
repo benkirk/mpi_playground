@@ -211,7 +211,11 @@ int main (int argc, char **argv)
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
   const bool print_aggregate = (rank == 0) && (nprocs > 1);
 
-  io_basename += std::string(std::to_string(rank));
+  {
+    char buf[256];
+    sprintf(buf, "%03d", rank);
+    io_basename.append(buf);
+  }
 
   {
     boost::timer t;
