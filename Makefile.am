@@ -63,7 +63,7 @@ DISTCLEANFILES = *~
 
 ouput_files = test.*.xdr test.*.bin test.*.h5
 
-MOSTLYCLEANFILES = $(ouput_files)
+MOSTLYCLEANFILES = $(ouput_files) slurm-*.out
 
 cleandata:
 	rm -f $(ouput_files)

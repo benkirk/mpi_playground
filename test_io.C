@@ -110,6 +110,9 @@ void read_xdr (std::vector<double> &data)
   xdr_destroy (xdrs);
   delete xdrs;
 
+  if (!data.empty() && (data[0] != static_cast<double>(rank*data.size())))
+    std::cerr << "Unexpected value read!\n";
+
   fflush (fp);
   fclose (fp);
 }
@@ -145,6 +148,9 @@ void read_c (std::vector<double> &data)
          sizeof(double),
          data.size(),
          fp);
+
+  if (!data.empty() && (data[0] != static_cast<double>(rank*data.size())))
+    std::cerr << "Unexpected value read!\n";
 
   fflush (fp);
   fclose (fp);
@@ -188,6 +194,9 @@ void read_h5 (std::vector<double> &data)
 
   // we convert the hdf5 dataset to a single dimension vector
   dataset.read(data);
+
+  if (!data.empty() && (data[0] != static_cast<double>(rank*data.size())))
+    std::cerr << "Unexpected value read!\n";
 }
 #endif // #ifdef HAVE_HDF5
 

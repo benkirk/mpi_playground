@@ -4,31 +4,34 @@
 #PBS -l walltime=0:10:00
 #PBS -j oe
 #SBATCH -n 48 --ntasks-per-node=4
-##SBATCH --constraint=[wes|san|has|bro]
-#SBATCH --constraint=bro
+#SBATCH --constraint=bro #[wes|san|has|bro]
 
 case=$SLURM_JOB_NAME
 
 #
 # Initialize the log file
-echo " -------------------------------------------------------------------------------" > $case.log
-echo "| Started:       `date`"              >> $case.log
-echo "| Case name:     $case"               >> $case.log
-echo "| Job ID:        $SLURM_JOBID"        >> $case.log
-echo "| Nodes:         $SLURM_JOB_NODELIST" >> $case.log
-echo "| Working Dir:   $SLURM_SUBMIT_DIR"   >> $case.log
-echo "| # of Procs:    $SLURM_NPROCS"       >> $case.log
-echo " -------------------------------------------------------------------------------" >> $case.log
+cat <<EOF > $case.log
+ -------------------------------------------------------------------------------
+| Started:       `date`
+| Case name:     $case
+| Job ID:        $SLURM_JOBID
+| Nodes:         $SLURM_JOB_NODELIST
+| Working Dir:   $SLURM_SUBMIT_DIR
+| # of Procs:    $SLURM_NPROCS
+| # of Nodes:    $SLURM_NNODES
+| # Tasks/Node:  $SLURM_TASKS_PER_NODE
+ -------------------------------------------------------------------------------
+EOF
 
-env
+#env
 
 echo "" >> $case.log
 echo "Write test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -W -S 4e9 >> $case.log
+mpiexec_mpt _inst/bin/test_io -x -W -S 4e9 >> $case.log 2>&1
 
 echo "" >> $case.log
 echo "Read test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -R -S 4e9 >> $case.log
+mpiexec_mpt _inst/bin/test_io -x -R -S 4e9 >> $case.log 2>&1
 
 echo "" >> $case.log
 echo "...finished $case..." >> $case.log
