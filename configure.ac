@@ -15,9 +15,10 @@ AM_INIT_AUTOMAKE([dist-bzip2 color-tests 1.11])
 # use silent rules - automake 1.11
 AM_SILENT_RULES(yes)
 
-CXX_try="mpicxx mpic++ mpiCC"
-CC_try="mpicc"
-FC_try="mpif90"
+# Checks for programs.
+AC_PROG_CXX([mpicxx mpic++ mpiCC])
+AC_PROG_CC([mpicc])
+AC_PROG_FC([mpif90])
 
 #----------------
 # Libmesh Config
@@ -26,10 +27,10 @@ AX_PATH_LIBMESH([have_libmesh=yes], [have_libmesh=no])
 
 # prefer libMesh compilers when available
 if test "$have_libmesh" = "yes"; then
-   CXX_try=`$LIBMESH_CONFIG --cxx`
-   CC_try=`$LIBMESH_CONFIG --cc`
-   FC_try=`$LIBMESH_CONFIG --fc`
-   F77_try=`$LIBMESH_CONFIG --fc`
+   CXX=${CXX:-$($LIBMESH_CONFIG --cxx)}
+   CC=${CC:-$($LIBMESH_CONFIG --cc)}
+   FC=${FC:-$($LIBMESH_CONFIG --fc)}
+
    CXXFLAGS="$CXXFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cxxflags`"
    CFLAGS="$CFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cflags`"
    FCFLAGS="$FCFLAGS `$LIBMESH_CONFIG --fflags`"
@@ -39,11 +40,6 @@ else
 fi
 
 AM_CONDITIONAL(ENABLE_LIBMESH, test x$have_libmesh = xyes)
-
-# Checks for programs.
-AC_PROG_CXX($CXX_try)
-AC_PROG_CC($CC_try)
-AC_PROG_FC($FC_try)
 
 # Checks for libraries.
 
@@ -72,3 +68,5 @@ AC_OUTPUT
 AC_MSG_RESULT(---------------------------------------------)
 AC_MSG_RESULT(------ Done Configuring MPI Playground ------)
 AC_MSG_RESULT(---------------------------------------------)
+
+AX_SUMMARIZE_CONFIG
