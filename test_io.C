@@ -249,7 +249,8 @@ int main (int argc, char **argv)
           {
             t.restart();
             unsigned int len = data.size();
-            WRITE_FORTRAN(&rank, &len, &data[0]);
+            WRITE_FORTRAN(&rank, &len, &data[0]); /**/ MPI_Barrier(MPI_COMM_WORLD);
+            print_bw("--> Aggregate F90  write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
       }
 
@@ -279,7 +280,11 @@ int main (int argc, char **argv)
           {
             t.restart();
             unsigned int len = data.size();
-            READ_FORTRAN(&rank, &len, &data[0]);
+            READ_FORTRAN(&rank, &len, &data[0]); /**/ MPI_Barrier(MPI_COMM_WORLD);
+            print_bw("--> Aggregate F90  read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
+            if (!data.empty() && (data[0] != static_cast<double>(rank*data.size())))
+              std::cerr << "Unexpected value read!\n";
+
           }
       }
   }
