@@ -27,9 +27,9 @@ AX_PATH_LIBMESH([have_libmesh=yes], [have_libmesh=no])
 
 # prefer libMesh compilers when available
 if test "$have_libmesh" = "yes"; then
-   CXX=${CXX:-$($LIBMESH_CONFIG --cxx)}
-   CC=${CC:-$($LIBMESH_CONFIG --cc)}
-   FC=${FC:-$($LIBMESH_CONFIG --fc)}
+   CXX=$($LIBMESH_CONFIG --cxx)
+   CC=$($LIBMESH_CONFIG --cc)
+   FC=$($LIBMESH_CONFIG --fc)
 
    CXXFLAGS="$CXXFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cxxflags`"
    CFLAGS="$CFLAGS `$LIBMESH_CONFIG --cppflags` `$LIBMESH_CONFIG --cflags`"
