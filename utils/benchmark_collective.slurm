@@ -1,9 +1,8 @@
 #!/bin/bash
 
-#PBS -N MPI-Benchmark-IO-RW
+#PBS -N mpi-collective
 #PBS -l walltime=0:10:00
-#PBS -j oe
-#SBATCH -n 96
+#SBATCH --nodes=4 --ntasks-per-node=12
 #SBATCH --constraint=[wes|san|has|bro]
 
 case=$SLURM_JOB_NAME
@@ -23,15 +22,14 @@ cat <<EOF > $case.log
  -------------------------------------------------------------------------------
 EOF
 
-#env
+for tool in osu_barrier osu_bcast osu_gather osu_allgather osu_alltoall; do
 
-echo "" >> $case.log
-echo "Write test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -W -S 4e9 >> $case.log 2>&1
+    echo "# --------------- " $tool " ---------------" >> $case.log
+    echo " zone t=\"" $case " - " $tool "\"" >> $case.log
 
-echo "" >> $case.log
-echo "Read test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -R -S 4e9 >> $case.log 2>&1
+    #for run in $(seq 0 1); do
 
-echo "" >> $case.log
-echo "...finished $case..." >> $case.log
+         mpiexec_mpt _inst/bin/$tool >> $case.log
+
+    #done
+done

@@ -3,7 +3,7 @@
 #PBS -N MPI-Benchmark-IO-Read
 #PBS -l walltime=0:10:00
 #PBS -j oe
-#SBATCH -n 64 --ntasks-per-node=2
+#SBATCH -n 96
 #SBATCH --constraint=[wes|san|has|bro]
 
 case=$SLURM_JOB_NAME
