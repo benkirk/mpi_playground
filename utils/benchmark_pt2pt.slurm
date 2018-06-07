@@ -5,7 +5,6 @@
 #SBATCH --nodes=2 --ntasks-per-node=1
 #SBATCH --constraint=[wes|san|has|bro]
 
-
 case=$SLURM_JOB_NAME
 
 #
