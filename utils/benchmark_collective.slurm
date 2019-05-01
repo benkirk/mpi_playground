@@ -1,11 +1,12 @@
 #!/bin/bash
 
 #PBS -N mpi-collective
-#PBS -l walltime=0:10:00
-#SBATCH --nodes=4 --ntasks-per-node=12
+#PBS -l walltime=40:00:00
+#SBATCH -p twoday
+#SBATCH --nodes=40 --ntasks-per-node=12
 #SBATCH --constraint=[wes|san|has|bro]
 
-case=$SLURM_JOB_NAME
+case=$SLURM_JOB_NAME.$SLURM_JOBID
 
 #
 # Initialize the log file

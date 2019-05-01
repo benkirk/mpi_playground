@@ -27,11 +27,11 @@ EOF
 
 echo "" >> $case.log
 echo "Write test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -W -S 4e9 >> $case.log 2>&1
+mpiexec_mpt _inst/bin/test_io -x -W -S 1e9 >> $case.log 2>&1
 
 echo "" >> $case.log
 echo "Read test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -R -S 4e9 >> $case.log 2>&1
+mpiexec_mpt _inst/bin/test_io -x -R -S 1e9 >> $case.log 2>&1
 
 echo "" >> $case.log
 echo "...finished $case..." >> $case.log

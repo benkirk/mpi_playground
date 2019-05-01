@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 #PBS -N MPI-Abort
 #PBS -l walltime=0:10:00
@@ -17,6 +17,7 @@ cat <<EOF > $case.log
 | Job ID:        $SLURM_JOBID
 | Nodes:         $SLURM_JOB_NODELIST
 | Working Dir:   $SLURM_SUBMIT_DIR
+| TMP Dir:       $SLURM_JOB_TMPDIR
 | # of Procs:    $SLURM_NPROCS
 | # of Nodes:    $SLURM_NNODES
 | # Tasks/Node:  $SLURM_TASKS_PER_NODE
@@ -32,8 +33,14 @@ EOF
 
 #env >> $case.log
 
+module swap intel intel/17.0.2
+module list >> $case.log 2>&1
+
+
 echo "" >> $case.log
 echo "Abort test:" >> $case.log
+
+sleep 10
 
 mpiexec_mpt _inst/bin/abort >> $case.log 2>&1
 #mpiexec _inst/bin/abort >> $case.log 2>&1
