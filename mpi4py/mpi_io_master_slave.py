@@ -126,18 +126,15 @@ def read():
     nruns = None
     lengths = None
 
+    rbuf = np.empty(1, np.int)
+    fh.Read_all(rbuf)
+    nruns = rbuf[0]
+    lengths = np.empty(nruns, dtype=np.int)
+    fh.Read_all(lengths)
+
     if not rank:
-        rbuf = np.empty(1, np.int)
-        fh.Read(rbuf)
-        nruns = rbuf[0]
         print("Reading data from {} mock MC runs".format(nruns))
-
-        lengths = np.empty(nruns, dtype=np.int)
-        fh.Read(lengths)
         print(lengths)
-
-    lengths  = comm.bcast(lengths)
-    nruns    = lengths.size
 
     head_offset = (1 + nruns)*isize
 
