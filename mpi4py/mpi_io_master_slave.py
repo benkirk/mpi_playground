@@ -179,9 +179,9 @@ def read():
             rbuf = np.empty(len, dtype=np.float)
             body_offset = (10*step)*fsize
             fh.Read_at(head_offset + body_offset, rbuf)
-            print ("step {}, rank, {}, vals={}".format(step, rank, rbuf))
+            print ("step {:3d}, rank {:3d}, vals={}".format(step, rank, rbuf))
 
-            result = (step, len, "  -> rank {}, step {} read array of len {}".format(rank,step,len))
+            result = (step, len, "  -> rank {:3d}, step {:3d} read array of len {}".format(rank,step,len))
 
     fh.Close();
     return

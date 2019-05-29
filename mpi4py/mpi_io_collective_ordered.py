@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from mpi4py import MPI
 import numpy as np
@@ -74,7 +74,7 @@ def read():
 
     fh.Seek_shared(head_offset)
     fh.Read_ordered(ibuf)
-    print(rank, ibuf.size, ibuf)
+    print("{:3} {:.0e} {}".format(rank, ibuf.size, ibuf))
 
     fh.Close()
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from mpi4py import MPI
 import numpy as np
@@ -14,6 +14,7 @@ fsize = np.finfo(np.float).bits/8
 
 
 fname = './datafile.contig'
+
 
 #############################################
 def fill_buffer(step=0):
@@ -36,14 +37,16 @@ def write():
 
     obuf = fill_buffer(rank)
     lengths = np.array(comm.allgather(obuf.size))
+    offsets = np.cumsum(np.insert(lengths, 0, 0))
+    data_offset = offsets[rank]*fsize
 
-    fh.Seek_shared(head_offset)
-    fh.Write_ordered(obuf)
+    fh.Write_at_all(head_offset + data_offset, obuf)
 
     # rank 0 writes the header
     if not rank:
         fh.Seek(0)
         print(lengths)
+        #print(offsets)
         fh.Write(np.full(1, size, dtype=np.int))
         fh.Write(lengths)
         print("File size={}".format(fh.Get_size()))
@@ -67,14 +70,18 @@ def read():
     fh.Read_all(insize)
     lengths = np.empty(insize[0], dtype=np.int)
     fh.Read_all(lengths)
-    if not rank: print(lengths)
-
     head_offset = (1 + lengths.size)*isize
+    offsets = np.cumsum(np.insert(lengths, 0, 0))
+    data_offset = offsets[rank]*fsize
+
+    if not rank:
+        print(lengths)
+        #print(offsets)
+
     ibuf = np.empty(lengths[rank], dtype=np.float)
 
-    fh.Seek_shared(head_offset)
-    fh.Read_ordered(ibuf)
-    print(rank, ibuf.size, ibuf)
+    fh.Read_at_all(head_offset + data_offset, ibuf)
+    print("{:3} {:.0e} {}".format(rank, ibuf.size, ibuf))
 
     fh.Close()
 
