@@ -46,8 +46,7 @@ def write():
     # Master will write header: [ nruns [s0 s1 ... sNRUNS) ]
     if not rank:
         print("Writing output from {} mock MC runs".format(nruns))
-        wbuf = np.empty(1, dtype=np.int)
-        wbuf[0] = nruns
+        wbuf = np.full(1, nruns, dtype=np.int)
         fh.Write(wbuf)
 
         for step in range(0,nruns):
@@ -106,7 +105,7 @@ def write():
             step = instruct[0]
             buf = fill_buffer(step)
             bsize = buf.size
-            result = (step, bsize, "  -> rank {}, step {} created array of len {}".format(rank,step,bsize))
+            result = (step, bsize, "  -> rank {:3d}, step {:3d} created array of len {}".format(rank,step,bsize))
 
             body_offset = (10*step)*fsize
             fh.Write_at(head_offset + body_offset, buf)
@@ -126,6 +125,7 @@ def read():
     nruns = None
     lengths = None
 
+    # collective read at header
     rbuf = np.empty(1, np.int)
     fh.Read_all(rbuf)
     nruns = rbuf[0]
@@ -140,8 +140,6 @@ def read():
 
     status = MPI.Status()
 
-    ########################################################
-    # Master will write header: [ nruns [s0 s1 ... sNRUNS) ]
     if not rank:
         for step in range(0,nruns):
             result = comm.recv(source=MPI.ANY_SOURCE, tag=1, status=status)
@@ -169,12 +167,8 @@ def read():
     else:
         result = None
         while True:
-            # signal Master we are ready for the next task. We can do this
-            # asynchronously, without a request, because we can infer completion
-            # with the subsequent recv.
             comm.isend(result, dest=0, tag=1)
 
-            # receive instructions from Master
             instruct = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
 
             # choose proper action based on message tag
