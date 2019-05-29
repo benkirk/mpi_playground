@@ -3,7 +3,7 @@
 #PBS -N mpi-pt2pt
 #PBS -l walltime=0:10:00
 #SBATCH --nodes=2 --ntasks-per-node=1
-#SBATCH --constraint=[wes|san|has|bro]
+##SBATCH --constraint=[wes|san|has|bro]
 
 case=$SLURM_JOB_NAME
 
@@ -29,7 +29,7 @@ for tool in osu_bw osu_bibw osu_latency ; do
 
     #for run in $(seq 0 1); do
 
-         mpiexec_mpt _inst/bin/$tool >> $case.log
+         mpiexec _inst/bin/$tool >> $case.log
 
     #done
 done
