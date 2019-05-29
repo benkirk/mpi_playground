@@ -9,9 +9,8 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 assert size > 1
 
-isize = np.iinfo(np.int).bits/8
-fsize = np.finfo(np.float).bits/8
-
+isize = np.full(1, 0,  dtype=np.int).itemsize
+fsize = np.full(1, 0., dtype=np.float).itemsize
 
 fname = './datafile.contig'
 
