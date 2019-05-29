@@ -24,8 +24,8 @@ def fill_buffer(step=0):
     from random import randint, seed
     from os import urandom
     seed(step)
-    len = randint (5, 5)
-    return np.full(len, step, np.float)
+    pow = randint (6, 6)
+    return np.full(10**pow, step, np.float)
 
 
 
@@ -105,12 +105,13 @@ def write():
             step = instruct[0]
             buf = fill_buffer(step)
             bsize = buf.size
-            result = (step, bsize, "  -> rank {:3d}, step {:3d} created array of len {}".format(rank,step,bsize))
+            result = (step, bsize, "  -> rank {:3d}, step {:3d} created array of len {:.0e}".format(rank,step,bsize))
 
-            body_offset = (10*step)*fsize
+            body_offset = (1e6*step)*fsize
             fh.Write_at(head_offset + body_offset, buf)
 
 
+    if not rank: print("File size={}".format(fh.Get_size()))
     fh.Close();
     return
 
@@ -121,6 +122,7 @@ def read():
 
     amode = MPI.MODE_RDONLY
     fh = MPI.File.Open(comm, fname, amode)
+    if not rank: print("File size={}".format(fh.Get_size()))
 
     nruns = None
     lengths = None
@@ -177,7 +179,7 @@ def read():
             step = instruct[0]
             len  = instruct[1]
             rbuf = np.empty(len, dtype=np.float)
-            body_offset = (10*step)*fsize
+            body_offset = (1e6*step)*fsize
             fh.Read_at(head_offset + body_offset, rbuf)
             print ("step {:3d}, rank {:3d}, vals={}".format(step, rank, rbuf))
 

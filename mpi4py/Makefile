@@ -34,7 +34,11 @@ osu_collective: osu_barrier.py osu_gather.py osu_allgather.py osu_scatter.py osu
 
 io: $(wildcard mpi_io_*.py)
 	for file in $^; do \
-	  echo "#########################################" ; \
+	  echo "################################################################################" ; \
 	  echo $$file: ; \
 	  $(PYMPIRUN) $(NPROCS) python $$file ; \
 	done
+
+
+clean:
+	rm -f *.contig
