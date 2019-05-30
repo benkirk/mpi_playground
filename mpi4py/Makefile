@@ -41,4 +41,4 @@ io: $(wildcard mpi_io_*.py)
 
 
 clean:
-	rm -f *.contig
+	rm -f *.contig mc_*.*

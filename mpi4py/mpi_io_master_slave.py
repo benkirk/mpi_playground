@@ -10,6 +10,11 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 assert size > 1
 
+i_am_master =  True if (rank == 0) else False
+
+# create a slave-only communicator for collective IO
+slave_comm = comm.Create_group(comm.group.Excl([0]))
+
 isize = np.full(1, 0,  dtype=np.int).itemsize
 fsize = np.full(1, 0., dtype=np.float).itemsize
 
@@ -23,7 +28,7 @@ def fill_buffer(step=0):
     from random import randint, seed
     from os import urandom
     seed(step)
-    pow = randint (6, 6)
+    pow = randint (4, 4)
     return np.full(10**pow, step, np.float)
 
 
@@ -43,7 +48,7 @@ def write():
 
     ########################################################
     # Master will write header: [ nruns [s0 s1 ... sNRUNS) ]
-    if not rank:
+    if i_am_master:
         print("Writing output from {} mock MC runs".format(nruns))
         wbuf = np.full(1, nruns, dtype=np.int)
         fh.Write(wbuf)
@@ -110,7 +115,7 @@ def write():
             fh.Write_at(head_offset + body_offset, buf)
 
 
-    if not rank: print("File size={}".format(fh.Get_size()))
+    if i_am_master: print("File size={}".format(fh.Get_size()))
     fh.Close();
     return
 
@@ -121,7 +126,7 @@ def read():
 
     amode = MPI.MODE_RDONLY
     fh = MPI.File.Open(comm, fname, amode)
-    if not rank: print("File size={}".format(fh.Get_size()))
+    if i_am_master: print("File size={}".format(fh.Get_size()))
 
     nruns = None
     lengths = None
@@ -133,7 +138,7 @@ def read():
     lengths = np.empty(nruns, dtype=np.int)
     fh.Read_all(lengths)
 
-    if not rank:
+    if i_am_master:
         print("Reading data from {} mock MC runs".format(nruns))
         print(lengths)
 
@@ -141,7 +146,7 @@ def read():
 
     status = MPI.Status()
 
-    if not rank:
+    if i_am_master:
         for step in range(0,nruns):
             result = comm.recv(source=MPI.ANY_SOURCE, tag=1, status=status)
             ready_rank = status.Get_source()
@@ -180,7 +185,7 @@ def read():
             rbuf = np.empty(len, dtype=np.float)
             body_offset = (1e6*step)*fsize
             fh.Read_at(head_offset + body_offset, rbuf)
-            print ("step {:3d}, rank {:3d}, vals={}".format(step, rank, rbuf))
+            print ("step {:3d}, rank {:3d}, read vals={}".format(step, rank, rbuf))
 
             result = (step, len, "  -> rank {:3d}, step {:3d} read array of len {}".format(rank,step,len))
 
@@ -193,7 +198,7 @@ if __name__ == "__main__":
     write()
 
     comm.Barrier()
-    if not rank: print("-"*80)
+    if i_am_master: print("-"*80)
     sleep(2)
 
     read()
