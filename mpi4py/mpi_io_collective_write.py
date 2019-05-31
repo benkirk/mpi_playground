@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from mpi4py import MPI
 import numpy as np
@@ -9,11 +9,9 @@ nranks = comm.Get_size()
 
 i_am_root =  True if (rank == 0) else False
 
-self_comm = MPI.COMM_SELF
-
 # create a slave-only communicator for collective IO
-isize = np.full(1, 0,  dtype=np.int).itemsize
-fsize = np.full(1, 0., dtype=np.float).itemsize
+int_size   = np.full(1, 0,  dtype=np.int).itemsize
+float_size = np.full(1, 0., dtype=np.float).itemsize
 
 fname = './collective_data.contig'
 
@@ -33,36 +31,32 @@ def write():
 
     lengths = np.zeros(nranks, dtype=np.int)
 
-    head_offset = (1 + nranks)*isize
-
-    status = MPI.Status()
+    head_offset = (1 + nranks)*int_size
 
     fd = MPI.File.Open(comm, fname, MPI.MODE_WRONLY|MPI.MODE_CREATE)
 
     buf = fill_buffer()
-    bsize = buf.size
-    print("-> rank {:3d} created array of len {:.0e}".format(rank,bsize))
+    print("-> rank {:3d} created array of len {:.0e}".format(rank,buf.size))
 
-    bsizes      = np.array(comm.allgather(bsize))
-    data_size   = np.sum(bsizes)*fsize
+    # get buffer sizes per rank. total data size, and rank offsets
+    bsizes      = np.array(comm.allgather(buf.size))
+    data_size   = np.sum(bsizes)*float_size
     offsets     = np.cumsum(np.insert(bsizes, 0, 0))
-    data_offset = offsets[rank]*fsize + head_offset
+    data_offset = offsets[rank]*float_size + head_offset
 
     fd.Preallocate(head_offset+data_size)
 
-    fd.Write_at_all(data_offset, buf)
-
     # rank 0 writes header
     if i_am_root:
-        fd.Seek(0)
         fd.Write(np.full(1, nranks, dtype=np.int))
         fd.Write(bsizes)
-        print("Data size={}, head_offset={}, head_offset+data_size={}".format(fd.Get_size(),
+        print("File size={}, head_offset={}, head_offset+data_size={}".format(fd.Get_size(),
                                                                               head_offset,
                                                                               head_offset+data_size))
+    # collective write, each rank at their own offset
+    fd.Write_at_all(data_offset, buf)
 
     fd.Close()
-
     return
 
 

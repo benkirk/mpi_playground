@@ -39,6 +39,19 @@ io: $(wildcard mpi_io_*.py)
 	  $(PYMPIRUN) $(NPROCS) python $$file ; \
 	done
 
+collective_io_mismatch:
+	for nwrite in $$(seq 1 5 21); do \
+	  for nread in $$(seq 1 5 21); do \
+	    echo "################################################################################" ; \
+            echo "# " $$nwrite:$$nread ; \
+	    echo "################################################################################" ; \
+	    $(MAKE) clean ; \
+	    $(PYMPIRUN) -np $$nwrite ./mpi_io_collective_write.py && \
+              echo "--------------------------------------------------------------------------------" && \
+              $(PYMPIRUN) -np $$nread ./mpi_io_collective_read.py ; \
+	    echo && echo && echo ; \
+	  done ; \
+	done
 
 clean:
 	rm -f *.contig mc_*.*
