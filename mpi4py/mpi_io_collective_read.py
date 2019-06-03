@@ -58,7 +58,7 @@ def read():
         # collective read, each rank at their own offset
         fd.Read_at_all(data_offset, buf)
 
-        if bsize: print("-> rank {:3d} created array of len {:.0e}, vals={}".format(rank,bsize,buf))
+        if bsize: print("-> rank {:3d} created array of len {:.1e}, vals={}".format(rank,bsize,buf))
 
     fd.Close()
     return

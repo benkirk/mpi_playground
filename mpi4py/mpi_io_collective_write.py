@@ -22,7 +22,9 @@ def fill_buffer():
     from random import randint, seed
     seed(rank)
     pow = randint (4, 6)
-    return np.full(10**pow, rank, np.float)
+    lead = float(randint(10,14))/10.
+    size = int(lead*10**pow)
+    return np.full(size, rank, np.float)
 
 
 
@@ -36,7 +38,7 @@ def write():
     fd = MPI.File.Open(comm, fname, MPI.MODE_WRONLY|MPI.MODE_CREATE)
 
     buf = fill_buffer()
-    print("-> rank {:3d} created array of len {:.0e}".format(rank,buf.size))
+    print("-> rank {:3d} created array of len {:.1e}".format(rank,buf.size))
 
     # get buffer sizes per rank. total data size, and rank offsets
     bsizes      = np.array(comm.allgather(buf.size))
