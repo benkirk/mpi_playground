@@ -1,3 +1,6 @@
 [submodule "H5"]
 	path = H5
 	url = https://github.com/BlueBrain/HighFive.git
+[submodule "mpifileutils"]
+	path = mpifileutils
+	url = https://github.com/hpc/mpifileutils.git
