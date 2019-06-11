@@ -21,8 +21,8 @@ def fill_buffer():
 
     from random import randint, seed
     seed(rank)
-    pow = randint (4, 6)
-    lead = float(randint(10,14))/10.
+    pow = randint(6, 8)
+    lead = float(randint(10,30))/10.
     size = int(lead*10**pow)
     return np.full(size, rank, np.float)
 
@@ -35,10 +35,14 @@ def write():
 
     head_offset = (1 + nranks)*int_size
 
-    fd = MPI.File.Open(comm, fname, MPI.MODE_WRONLY|MPI.MODE_CREATE)
-
     buf = fill_buffer()
-    print("-> rank {:3d} created array of len {:.1e}".format(rank,buf.size))
+    print("-> rank {:3d} created {:.2e} length {:.3f} GB array".format(rank,
+                                                                       buf.size,
+                                                                       buf.size*float_size/1.e9))
+
+    tstart = MPI.Wtime()
+
+    fd = MPI.File.Open(comm, fname, MPI.MODE_WRONLY|MPI.MODE_CREATE)
 
     # get buffer sizes per rank. total data size, and rank offsets
     bsizes      = np.array(comm.allgather(buf.size))
@@ -52,13 +56,26 @@ def write():
     if i_am_root:
         fd.Write(np.full(1, nranks, dtype=np.int))
         fd.Write(bsizes)
-        print("File size={}, head_offset={}, head_offset+data_size={}".format(fd.Get_size(),
-                                                                              head_offset,
-                                                                              head_offset+data_size))
+
     # collective write, each rank at their own offset
+    print("-> rank {:3d} writing array of len {:.2e}".format(rank,buf.size))
     fd.Write_at_all(data_offset, buf)
 
+    filesize = fd.Get_size()
+
     fd.Close()
+
+    elapsed = MPI.Wtime() - tstart
+
+    # rank 0 writes summary
+    if i_am_root:
+        print("NRanks = {}".format(nranks))
+        print("  File size = {} bytes, {:.3f} GB".format(filesize,filesize/1.e9))
+        print("  head_offset = {}".format(head_offset))
+        print("  head_offset+data_size = {}".format(head_offset+data_size))
+        print("  elapsed = {:.3f} sec".format(elapsed))
+        print("Write Rate = {:.3f} GB/sec (excl. allocation)".format(float(filesize)/1.e9/elapsed))
+
     return
 
 

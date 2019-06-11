@@ -19,7 +19,11 @@ fname = './collective_data.contig'
 #############################################
 def read():
 
+    tstart = MPI.Wtime()
+
     fd = MPI.File.Open(comm, fname, MPI.MODE_RDONLY)
+
+    filesize = fd.Get_size()
 
     # read header, includes number of write ranks and buffer sizes
     rbuf = np.empty(1, np.int)
@@ -58,9 +62,19 @@ def read():
         # collective read, each rank at their own offset
         fd.Read_at_all(data_offset, buf)
 
-        if bsize: print("-> rank {:3d} created array of len {:.1e}, vals={}".format(rank,bsize,buf))
+        if bsize: print("-> rank {:3d} read {:.2e} length {:.3f} GB array, vals={}".format(rank,
+                                                                                           bsize,
+                                                                                           bsize*float_size/1.e9,
+                                                                                           buf))
 
+    elapsed = MPI.Wtime() - tstart
     fd.Close()
+
+    # rank 0 writes summary
+    if i_am_root:
+        print("NRanks = {} read output from {} ranks".format(nranks, nranks_read))
+        print("Read Rate = {:.3f} GB/sec (incl. allocation)".format(float(filesize)/1.e9/elapsed))
+
     return
 
 
