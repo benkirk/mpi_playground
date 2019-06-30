@@ -1,4 +1,4 @@
-SUBDIRS = osu-benchmarks
+SUBDIRS = osu-benchmarks mpi4py
 
 if ENABLE_LIBMESH
   SUBDIRS += libmesh_apps

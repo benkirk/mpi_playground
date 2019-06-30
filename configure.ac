@@ -22,6 +22,7 @@ AC_PROG_FC([mpif90])
 AC_PROG_F77([mpif90])
 AC_FC_LIBRARY_LDFLAGS
 AC_FC_WRAPPERS
+AM_PATH_PYTHON
 
 #----------------
 # Libmesh Config
