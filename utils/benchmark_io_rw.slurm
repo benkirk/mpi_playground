@@ -3,9 +3,9 @@
 #PBS -N MPI-Benchmark-IO-RW
 #PBS -l walltime=0:10:00
 #PBS -j oe
-#SBATCH --nodes=8
+#SBATCH --nodes=12
 #SBATCH --ntasks-per-node=12
-#SBATCH --constraint=[has|bro|sky]
+#SBATCH --constraint=[san|has|bro|sky]
 
 case=$SLURM_JOB_NAME
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#PBS -N mpi-collective
-#PBS -l walltime=40:00:00
-#SBATCH -p twoday
-#SBATCH --nodes=40 --ntasks-per-node=12
-#SBATCH --constraint=[wes|san|has|bro]
+#SBATCH --job-name=mpi-collective
+#SBATCH -n 512
+#SBATCH --time=00:30:00
+##SBATCH --constraint=[wes|san|has|bro|sky]
+#SBATCH --constraint=[wes|san|has|bro|sky]
 
 case=$SLURM_JOB_NAME.$SLURM_JOBID
 
