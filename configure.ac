@@ -67,6 +67,7 @@ AC_CONFIG_SUBDIRS([osu-benchmarks])
 # Set up output files
 AC_CONFIG_FILES([Makefile
                  libmesh_apps/Makefile
+                 mpi4py/Makefile
                  ])
 AC_OUTPUT
 AC_MSG_RESULT(---------------------------------------------)
