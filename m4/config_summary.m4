@@ -32,6 +32,7 @@ echo FCFLAGS........................: $FCFLAGS
 echo libmesh dir................... : $LIBMESH_PREFIX
 echo libmesh-config................ : $LIBMESH_CONFIG
 echo Install dir................... : $prefix
+echo Python install dir............ : $pythondir
 echo Build user.................... : $USER
 #echo Build host.................... : $BUILD_HOST
 #echo Configure date................ : $BUILD_DATE
