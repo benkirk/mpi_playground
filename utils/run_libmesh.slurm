@@ -1,11 +1,12 @@
 #!/bin/bash
 
-#PBS -N mpi-pt2pt
+#PBS -N MPI-libMesh
 #PBS -l walltime=0:10:00
-#SBATCH --nodes=2 --ntasks-per-node=1
-#SBATCH --constraint=[wes|san|has|bro]
+#PBS -j oe
+#SBATCH -n 128
+#SBATCH --constraint=[san|has|bro|sky]
 
-case=$SLURM_JOB_NAME
+case=${SLURM_JOB_NAME}-${SLURM_JOBID}
 
 #
 # Initialize the log file
@@ -22,14 +23,13 @@ cat <<EOF > $case.log
  -------------------------------------------------------------------------------
 EOF
 
-for tool in osu_bw osu_bibw osu_latency ; do
+env | sort >> $case.log
 
-    echo "# --------------- " $tool " ---------------" >> $case.log
-    echo " zone t=\"" $case " - " $tool "\"" >> $case.log
+# optional bits
+[ -x _inst/bin/hello ] && \
+    mpiexec _inst/bin/hello >> $case.log 2>&1 || \
+    { echo "no _inst/bin/hello found!\n"; exit 1; }
 
-    #for run in $(seq 0 1); do
+sleep $((3*60))
 
-         mpiexec _inst/bin/$tool >> $case.log
-
-    #done
-done
+echo "...finished $case..." >> $case.log
