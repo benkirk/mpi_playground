@@ -1,6 +1,6 @@
 # bin_PROGRAMS =
 
-CLEANFILES    = collective_data.contig
+CLEANFILES    = $(top_builddir)/collective_data.contig
 BUILT_SOURCES =
 bin_SCRIPTS   =
 
