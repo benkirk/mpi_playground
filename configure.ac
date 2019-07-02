@@ -70,6 +70,7 @@ AC_CONFIG_SUBDIRS([osu-benchmarks])
 AC_CONFIG_FILES([Makefile
                  libmesh_apps/Makefile
                  mpi4py/Makefile
+                 mpi4py/py_wrapper
                  ])
 AC_OUTPUT
 AC_MSG_RESULT(---------------------------------------------)

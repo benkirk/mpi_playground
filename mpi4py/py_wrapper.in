@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# https://blog.couchbase.com/installing-python-scripts-automake/
+
+function wrap_py() {
+    local prefix=@prefix@
+    local config_PYTHONPATH=@PYTHONPATH@
+
+    if test -z "${PYTHONPATH}"; then
+        PYTHONPATH=@pythondir@
+    else
+        PYTHONPATH=@pythondir@:${PYTHONPATH}
+    fi
+    export PYTHONPATH
+    exec @PYTHON@ @pythondir@/$(basename $0).py "$@"
+}
+
+wrap_py $@

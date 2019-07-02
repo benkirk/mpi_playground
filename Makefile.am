@@ -65,6 +65,11 @@ test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
 DISTCLEANFILES = *~
 
+#
+# special things to do when running 'make clean/distclean'
+clean-local:
+	rm -rf `find $(builddir) -type d -name "*.dSYM"`
+
 ouput_files = test.*.xdr test.*.bin test.*.h5 test.*.fbin
 
 MOSTLYCLEANFILES = $(ouput_files) slurm-*.out
