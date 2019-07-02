@@ -72,7 +72,7 @@ clean-local:
 
 ouput_files = test.*.xdr test.*.bin test.*.h5 test.*.fbin
 
-MOSTLYCLEANFILES = $(ouput_files) slurm-*.out
+MOSTLYCLEANFILES = $(ouput_files) slurm-*.out MPI-*.log
 
 cleandata:
 	rm -f $(ouput_files)

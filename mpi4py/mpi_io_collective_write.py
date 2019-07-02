@@ -10,8 +10,8 @@ nranks = comm.Get_size()
 i_am_root =  True if (rank == 0) else False
 
 # create a slave-only communicator for collective IO
-int_size   = np.full(1, 0,  dtype=np.int).itemsize
-float_size = np.full(1, 0., dtype=np.float).itemsize
+int_size   = np.zeros(1, dtype=np.int).itemsize
+float_size = np.zeros(1, dtype=np.float).itemsize
 
 fname = './collective_data.contig'
 
@@ -21,10 +21,12 @@ def fill_buffer():
 
     from random import randint, seed
     seed(rank)
-    pow = randint(6, 8)
-    lead = float(randint(10,30))/10.
+    pow = randint(8, 8)
+    lead = float(randint(100,130))/100.
     size = int(lead*10**pow)
-    return np.full(size, rank, np.float)
+    buf = np.zeros(size, np.float)
+    buf[:] = rank
+    return buf
 
 
 
@@ -54,7 +56,8 @@ def write():
 
     # rank 0 writes header
     if i_am_root:
-        fd.Write(np.full(1, nranks, dtype=np.int))
+        rbuf = np.zeros(1, dtype=np.int); rbuf[:] = nranks
+        fd.Write(rbuf)
         fd.Write(bsizes)
 
     # collective write, each rank at their own offset

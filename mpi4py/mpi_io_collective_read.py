@@ -10,8 +10,8 @@ nranks = comm.Get_size()
 i_am_root =  True if (rank == 0) else False
 
 # create a slave-only communicator for collective IO
-int_size = np.full(1, 0,  dtype=np.int).itemsize
-float_size = np.full(1, 0., dtype=np.float).itemsize
+int_size =   np.zeros(1, dtype=np.int).itemsize
+float_size = np.zeros(1, dtype=np.float).itemsize
 
 fname = './collective_data.contig'
 

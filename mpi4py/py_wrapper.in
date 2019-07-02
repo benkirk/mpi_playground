@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 # https://blog.couchbase.com/installing-python-scripts-automake/
 
-function wrap_py() {
+function wrap_py () {
     local prefix=@prefix@
     local config_PYTHONPATH=@PYTHONPATH@
 
