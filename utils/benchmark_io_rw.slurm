@@ -29,17 +29,17 @@ env | sort >> $case.log
 
 echo "" >> $case.log
 echo "Write test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -W -S 5e8 >> $case.log 2>&1
+mpiexec _inst/bin/test_io -x -W -S 5e8 >> $case.log 2>&1
 
 echo "" >> $case.log
 echo "Read test:" >> $case.log
-mpiexec_mpt _inst/bin/test_io -x -R -S 5e8 >> $case.log 2>&1
+mpiexec _inst/bin/test_io -x -R -S 5e8 >> $case.log 2>&1
 
 echo "" >> $case.log
 
 
 # optional bits
-[ -x _inst/bin/hello ] && mpiexec_mpt _inst/bin/hello >> $case.log 2>&1
+[ -x _inst/bin/hello ] && mpiexec _inst/bin/hello >> $case.log 2>&1
 
 file=_inst/bin/mpi_io_collective_write
 [ -f ${file} ] && \
