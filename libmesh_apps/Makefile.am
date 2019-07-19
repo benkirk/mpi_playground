@@ -1,7 +1,8 @@
-bin_PROGRAMS =
-
 AM_CPPFLAGS = $(LIBMESH_CXXFLAGS)
 LIBS = $(LIBMESH_LIBS)
+
+bin_PROGRAMS =
+CLEANFILES =
 
 # Only build here if we have libmesh
 if ENABLE_LIBMESH

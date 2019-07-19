@@ -4,7 +4,8 @@
 #PBS -l walltime=0:10:00
 #PBS -j oe
 #SBATCH -n 128
-#SBATCH --constraint=[san|has|bro|sky]
+##SBATCH --constraint=[san|has|bro|sky]
+##SBATCH --constraint=[bro]
 
 case=${SLURM_JOB_NAME}-${SLURM_JOBID}
 
@@ -23,13 +24,23 @@ cat <<EOF > $case.log
  -------------------------------------------------------------------------------
 EOF
 
-env | sort >> $case.log
+env | egrep "MPI_|COMPILER|SLURM" | sort >> $case.log
 
 # optional bits
+
+## hello world
 [ -x _inst/bin/hello ] && \
     mpiexec _inst/bin/hello >> $case.log 2>&1 || \
-    { echo "no _inst/bin/hello found!\n"; exit 1; }
+    { echo "no _inst/bin/hello found!\n"; }
 
-sleep $((3*60))
+
+## poisson solver
+tstart=`date +%s`
+[ -x _inst/bin/poisson ] && \
+    mpiexec _inst/bin/poisson -d 3 -n 80 -ksp_monitor -log_view >> $case.log 2>&1 || \
+    { echo "no _inst/bin/poisson found!\n"; }
+tstop=`date +%s`
+echo "Poisson: $(($tstop-$tstart)) seconds total." >> $case.log
+
 
 echo "...finished $case..." >> $case.log

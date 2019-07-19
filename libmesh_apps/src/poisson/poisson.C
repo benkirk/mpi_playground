@@ -297,20 +297,20 @@ int main (int argc, char ** argv)
   // Solve the system "Poisson", just like example 2.
   system.solve();
 
-  // After solving the system write the solution
-  // to a GMV-formatted plot file.
-  if (dim == 1)
-    {
-      GnuPlotIO plot(mesh, "Introduction Example 4, 1D", GnuPlotIO::GRID_ON);
-      plot.write_equation_systems("gnuplot_script", equation_systems);
-    }
-#ifdef LIBMESH_HAVE_EXODUS_API
-  else
-    {
-      ExodusII_IO (mesh).write_equation_systems ((dim == 3) ?
-                                                 "out_3.e" : "out_2.e", equation_systems);
-    }
-#endif // #ifdef LIBMESH_HAVE_EXODUS_API
+//   // After solving the system write the solution
+//   // to a GMV-formatted plot file.
+//   if (dim == 1)
+//     {
+//       GnuPlotIO plot(mesh, "Introduction Example 4, 1D", GnuPlotIO::GRID_ON);
+//       plot.write_equation_systems("gnuplot_script", equation_systems);
+//     }
+// #ifdef LIBMESH_HAVE_EXODUS_API
+//   else
+//     {
+//       ExodusII_IO (mesh).write_equation_systems ((dim == 3) ?
+//                                                  "out_3.e" : "out_2.e", equation_systems);
+//     }
+// #endif // #ifdef LIBMESH_HAVE_EXODUS_API
 
   // All done.
   return 0;

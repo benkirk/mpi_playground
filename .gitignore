@@ -61,3 +61,6 @@ test_io
 test_io.dSYM/
 
 test.*.*
+INSTALL
+NEWS
+README

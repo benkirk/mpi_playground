@@ -70,9 +70,13 @@ DISTCLEANFILES = *~
 clean-local:
 	rm -rf `find $(builddir) -type d -name "*.dSYM"`
 
-ouput_files = test.*.xdr test.*.bin test.*.h5 test.*.fbin
+ouput_files = test.*.xdr test.*.bin test.*.h5 test.*.fbin out_?.e
+log_files   = slurm-*.out MPI-*.log
 
-MOSTLYCLEANFILES = $(ouput_files) slurm-*.out MPI-*.log
+MOSTLYCLEANFILES = $(ouput_files) $(logfiles)
 
 cleandata:
 	rm -f $(ouput_files)
+
+cleanlogs:
+	rm -f $(log_files)
