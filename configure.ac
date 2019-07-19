@@ -11,7 +11,7 @@ AC_CONFIG_HEADERS([mpi_play_config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([dist-bzip2 color-tests 1.11])
+AM_INIT_AUTOMAKE([dist-bzip2 subdir-objects color-tests 1.11])
 # use silent rules - automake 1.11
 AM_SILENT_RULES(yes)
 
