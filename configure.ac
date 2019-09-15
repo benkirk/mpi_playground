@@ -64,7 +64,7 @@ AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true], [mpi_ibarrier=false])
 AX_LIB_HDF5()
 
 # Configure subpackages
-AC_CONFIG_SUBDIRS([osu-benchmarks])
+AC_CONFIG_SUBDIRS([osu-benchmarks hpl])
 
 # Set up output files
 AC_CONFIG_FILES([Makefile
