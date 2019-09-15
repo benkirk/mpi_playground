@@ -3,6 +3,8 @@ AC_PREREQ([2.69])
 AC_INIT(hpl, 2.3, hpl@icl.utk.edu)
 AC_CONFIG_SRCDIR([include/hpl.h])
 AC_CONFIG_HEADERS([include/hplconfig.h])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([m4])
 
 AX_PROG_CC_MPI
 
