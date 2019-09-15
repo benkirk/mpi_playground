@@ -20,45 +20,14 @@ nonblocking_consensus
 aerolab*
 
 
+*.dSYM/
+*/*.dSYM/
+*/*/*.dSYM/
+*/*/*/*.dSYM/
 
 alltoall
-alltoall.dSYM/
-ibarrier.dSYM/
-nonblocking_consensus.dSYM/
-one_sided.dSYM/
 osu-benchmarks/compile
-osu-benchmarks/mpi/collective/osu_allgather.dSYM/
-osu-benchmarks/mpi/collective/osu_allgatherv.dSYM/
-osu-benchmarks/mpi/collective/osu_allreduce.dSYM/
-osu-benchmarks/mpi/collective/osu_alltoall.dSYM/
-osu-benchmarks/mpi/collective/osu_alltoallv.dSYM/
-osu-benchmarks/mpi/collective/osu_barrier.dSYM/
-osu-benchmarks/mpi/collective/osu_bcast.dSYM/
-osu-benchmarks/mpi/collective/osu_gather.dSYM/
-osu-benchmarks/mpi/collective/osu_gatherv.dSYM/
-osu-benchmarks/mpi/collective/osu_reduce.dSYM/
-osu-benchmarks/mpi/collective/osu_reduce_scatter.dSYM/
-osu-benchmarks/mpi/collective/osu_scatter.dSYM/
-osu-benchmarks/mpi/collective/osu_scatterv.dSYM/
-osu-benchmarks/mpi/one-sided/osu_acc_latency.dSYM/
-osu-benchmarks/mpi/one-sided/osu_get_bw.dSYM/
-osu-benchmarks/mpi/one-sided/osu_get_latency.dSYM/
-osu-benchmarks/mpi/one-sided/osu_passive_acc_latency.dSYM/
-osu-benchmarks/mpi/one-sided/osu_passive_get_bw.dSYM/
-osu-benchmarks/mpi/one-sided/osu_passive_get_latency.dSYM/
-osu-benchmarks/mpi/one-sided/osu_passive_put_bw.dSYM/
-osu-benchmarks/mpi/one-sided/osu_passive_put_latency.dSYM/
-osu-benchmarks/mpi/one-sided/osu_put_bibw.dSYM/
-osu-benchmarks/mpi/one-sided/osu_put_bw.dSYM/
-osu-benchmarks/mpi/one-sided/osu_put_latency.dSYM/
-osu-benchmarks/mpi/pt2pt/osu_bibw.dSYM/
-osu-benchmarks/mpi/pt2pt/osu_bw.dSYM/
-osu-benchmarks/mpi/pt2pt/osu_latency.dSYM/
-osu-benchmarks/mpi/pt2pt/osu_latency_mt.dSYM/
-osu-benchmarks/mpi/pt2pt/osu_mbw_mr.dSYM/
-osu-benchmarks/mpi/pt2pt/osu_multi_lat.dSYM/
 test_io
-test_io.dSYM/
 
 test.*.*
 INSTALL

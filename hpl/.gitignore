@@ -1,3 +1,8 @@
 .dirstamp
 */.dirstamp
 */*/.dirstamp
+
+include/hplconfig.h
+include/hplconfig.h.in
+src/libhpl.a
+testing/xhpl
