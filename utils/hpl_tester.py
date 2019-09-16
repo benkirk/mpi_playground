@@ -49,6 +49,8 @@ $Q            Qs
 ''')
 
 
+
+################################################################
 class HPLTool:
     """
     A class that handles creating HPL.dat files for HPLinpack based on entered
@@ -173,6 +175,8 @@ class HPLTool:
         f.close()
 
 
+
+################################################################
 class Slurm:
 
     def __init__(self, **kwargs):
@@ -204,6 +208,7 @@ class Slurm:
 
         sbatch = Template('''#!/bin/bash
 #SBATCH --partition=$queue
+#SBATCH --constraint=$type
 #SBATCH --time=$hours:00:00
 #SBATCH -o $root_dir/output/hpl_test_%j.log
 #SBATCH --job-name=hpl_tester
@@ -213,7 +218,8 @@ class Slurm:
 #SBATCH --array=1-$array_size
 
 
-srun hostname | sort
+
+#srun hostname | sort
 
 PATH=$top_dir/install/bin:$$PATH
 
@@ -225,7 +231,7 @@ cd $root_dir/$$HPL_DAT_DIR
 echo "This is array task $$SLURM_ARRAY_TASK_ID"
 echo "should be in directory $$HPL_DAT_DIR"
 pwd
-which xhpl
+echo " Running " $$(which xhpl)
 mpiexec xhpl
         ''')
 
@@ -238,20 +244,24 @@ mpiexec xhpl
         out = popen.communicate(sbatch.encode())[0].strip() #e.g. something like "Submitted batch job 209"
         print("Slurm batch output: %s" % out)
 
+
+
+################################################################
 def main(argv):
 
     top_dir=os.getcwd()
     nodes = None
     procs = None
-    mem = None
+    mem   = None
     hours = None
+    type  = 'bro'
 
     help_display = '''
-usage: python hpl_tester.py --nodes=<number_of_nodes> --procs=<procs_per_node> --mem=<memory_in_GB> [--time=<time_in_hours>]
-note: ** all args except --time are mandatory. The default time limit is 4 hours if none is provided
+usage: python hpl_tester.py --nodes=<number_of_nodes> --procs=<procs_per_node> --mem=<memory_in_GB> [--type="bro,sky,..."] [--time=<time_in_hours>]
+note: ** all args except --type, --time are mandatory. The default time limit is 4 hours if none is provided
     '''
     try:
-        opts, args = getopt.getopt(argv, "hn:p:m:t:", ["nodes=", "procs=", "mem=", "time="])
+        opts, args = getopt.getopt(argv, "hn:p:m:t:", ["nodes=", "procs=", "mem=", "type=", "time="])
     except getopt.GetoptError:
         print(help_display)
         sys.exit(2)
@@ -272,6 +282,8 @@ note: ** all args except --time are mandatory. The default time limit is 4 hours
             mem = int(arg)
         elif opt in ("-t", "--time"):
             hours = int(arg)
+        elif opt == "--type":
+            type = arg
 
     if nodes is None or procs is None or mem is None:
         print(help_display)
@@ -289,23 +301,27 @@ note: ** all args except --time are mandatory. The default time limit is 4 hours
     print("Best P: %s" % p_and_q[0])
     print("Best Q: %s" % p_and_q[1])
     try:
-        os.mkdir('test_runs')
+        os.mkdir('hpl_runs.{}'.format(type))
     except:
         pass
-    os.chdir('test_runs')
+    os.chdir('hpl_runs.{}'.format(type))
 
-    #hpl.create_dat_file(hpl.N_vals[128], 4, 1, 8)
-
-    # make a new directory for every combo of N_val
-    #for k, v in hpl.N_vals.items():
-    #    hpl.create_dirs_and_dats()
     print("Creating output directories...")
     hpl.create_dirs_and_dats()
     ntasks = int(nodes) * int(procs)
 
     print("Submitting Slurm jobs...")
     # You must include all of these args! It will fail if one of them is left out
-    Slurm(queue='normal', mem=mem, ntasks=ntasks, hours=hours, top_dir=top_dir, root_dir=os.getcwd())
+    Slurm(queue='normal',
+          mem=mem,
+          ntasks=ntasks,
+          hours=hours,
+          type=type,
+          top_dir=top_dir,
+          root_dir=os.getcwd())
 
+
+
+################################################################
 if __name__ == '__main__':
     main(sys.argv[1:])
