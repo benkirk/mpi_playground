@@ -6,15 +6,18 @@ AC_CONFIG_HEADERS([include/hplconfig.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
+AM_INIT_AUTOMAKE([dist-bzip2 subdir-objects color-tests 1.11])
+# use silent rules - automake 1.11
+AM_SILENT_RULES(yes)
+
 AX_PROG_CC_MPI
 
 AC_PROG_RANLIB
 
 AC_PROG_INSTALL
 
-AM_INIT_AUTOMAKE([subdir-objects])
-
 AM_PROG_CC_C_O
+AC_LANG_C
 
 dnl
 dnl AX_BLAS requires Fortran compiler and detects fortran libraries in $FLIBS
