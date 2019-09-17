@@ -64,7 +64,18 @@ AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true], [mpi_ibarrier=false])
 AX_LIB_HDF5()
 
 # Configure subpackages
-AC_CONFIG_SUBDIRS([osu-benchmarks hpl])
+AC_CONFIG_SUBDIRS([osu-benchmarks])
+AC_ARG_ENABLE(hpl,
+              AS_HELP_STRING([--disable-hpl],
+                             [build without HPL benchmark support]),
+              [AS_CASE("${enableval}",
+                       [yes], [enablehpl=yes],
+                       [no],  [enablehpl=no],
+                       [AC_MSG_ERROR(bad value ${enableval} for --enable-hpl)])],
+              [enablehpl=yes])
+AS_IF([test "$enablehpl" = "yes"], [ AC_CONFIG_SUBDIRS([hpl]) ])
+AM_CONDITIONAL(ENABLE_HPL, test x$enablehpl = xyes)
+
 
 # Set up output files
 AC_CONFIG_FILES([Makefile
