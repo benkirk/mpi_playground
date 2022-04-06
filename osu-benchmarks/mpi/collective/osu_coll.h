@@ -247,7 +247,7 @@ enum accel_type {
     openacc
 };
 
-struct {
+static struct {
     enum accel_type accel;
     int show_size;
     int show_full;
