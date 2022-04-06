@@ -10,7 +10,7 @@ LIBS       = $(FCLIBS) $(HDF5_LIBS)
 
 bin_PROGRAMS =
 
-bin_PROGRAMS     += ibarrier one_sided nonblocking_consensus alltoall abort test_io
+bin_PROGRAMS     += ibarrier one_sided nonblocking_consensus alltoall abort test_io is_list_unique
 
 ibarrier_SOURCES  = ibarrier.C
 one_sided_SOURCES = one_sided.C
@@ -63,6 +63,8 @@ test_io_SOURCES = test_io.C \
 test_io_CXXFLAGS = -std=c++11 -O2
 test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
+is_list_unique_SOURCES = is_list_unique.C is_list_unique.h process_cmdline.C \
+                         is_list_unique_c.c is_list_unique_c.h
 DISTCLEANFILES = *~
 
 #

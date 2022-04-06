@@ -4,3 +4,6 @@
 [submodule "mpifileutils"]
 	path = mpifileutils
 	url = https://github.com/hpc/mpifileutils.git
+[submodule "mpl"]
+	path = mpl
+	url = https://github.com/rabauke/mpl.git
