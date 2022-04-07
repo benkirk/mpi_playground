@@ -1,7 +1,7 @@
 #include "mpi_play_config.h"
 #include "process_cmdline.h"
 #include "is_list_unique.h"
-#include "is_list_unique_c.h"
+#include "parallel_sort.h"
 
 #include <algorithm>
 #include <iterator>
@@ -58,7 +58,7 @@ int main (int argc, char **argv)
   std::sort(ls.begin(), ls.end());
   print_container(ls);
 
-  main2(argc, argv);
+  run_unique_check();
 
   MPI_Finalize();
 

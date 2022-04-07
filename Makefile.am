@@ -64,7 +64,7 @@ test_io_CXXFLAGS = -std=c++11 -O2
 test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
 is_list_unique_SOURCES = is_list_unique.C is_list_unique.h process_cmdline.C \
-                         is_list_unique_c.c is_list_unique_c.h
+                         parallel_sort.c parallel_sort.h
 DISTCLEANFILES = *~
 
 #
