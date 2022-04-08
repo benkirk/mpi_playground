@@ -8,7 +8,7 @@ AC_MSG_RESULT(-------- Configuring MPI Playground ---------)
 AC_MSG_RESULT(---------------------------------------------)
 #AC_CONFIG_SRCDIR([ibarrier.C])
 top_srcdir=`dirname $0`
-srcdir=`dirname $0`
+#srcdir=`dirname $0`
 AC_CHECK_FILE(ibarrier.C, [vpath_build=no], [vpath_build=yes])
 AC_CONFIG_HEADERS([mpi_play_config.h])
 AC_CONFIG_AUX_DIR([build-aux])
