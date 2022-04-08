@@ -28,6 +28,14 @@ void fill_random(std::vector<long> &v) {
   std::generate(std::begin(v), std::end(v), get_random_long);
 }
 
+template <typename T>
+void make_unique(std::vector<T> &v) {
+  std::sort(begin(v), end(v));
+  auto last = std::unique(begin(v), end(v));
+  v.erase(last, end(v));
+  std::random_shuffle(begin(v), end(v));
+}
+
 // parallel sort algorithm for distributed memory computers
 //
 // algorithm works as follows:
@@ -112,34 +120,44 @@ int main (int argc, char **argv)
   const std::size_t N{5000 / static_cast<std::size_t>(size)};
   std::vector<long> v(N);
   fill_random(v);
-  v[0] = v[1];
+  make_unique(v);
+  //v[0] = v[1];
   parallel_sort(v);
 
+  bool i_have_dups = false;
   for (auto r=0; r<size; r++) {
     comm_world.barrier();
     if (rank == r) {
-      std::cout << "Rank " << rank << ", sorted (" << v.size() << ")" << std::endl;
+      std::cout << "Rank " << rank << ", sorted (" << v.size() << "):" << std::endl;
 
-      bool has_dups = false;
       for (std::size_t i=0; i<v.size(); i++)
         {
           std::string sep{" "};
           if (i != 0 && (v[i-1] == v[i])) {
-            has_dups = true;
+            i_have_dups = true;
             sep = "<--- ";
           }
           std::cout << v[i] << sep;
         }
-      if (has_dups)
-        std::cout << " *** is NOT unique ***";
+      if (i_have_dups)
+        std::cout << "*** is NOT unique ***";
       else
-        std::cout << " is unique";
+        std::cout << "is unique";
 
       std::cout << std::endl;
     }
   }
 
   // check for global duplicates
+  bool global_dups{i_have_dups};
+  comm_world.allreduce(mpl::max<bool>(), i_have_dups, global_dups);
+  if (rank == 0) {
+    std::string result = global_dups ?
+      "\nDetected Duplicates\n" :
+      "\nGlobally Unique\n";
+    std::cout << result << std::endl;
+  }
+
 
   return EXIT_SUCCESS;
 }
