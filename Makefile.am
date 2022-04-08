@@ -58,30 +58,6 @@ highfive_sources = \
      H5/include/highfive/H5Selection.hpp \
      H5/include/highfive/H5Utility.hpp
 
-
-mpl_sources = \
-   mpl/mpl/cartesian_communicator.hpp \
-   mpl/mpl/comm_group.hpp \
-   mpl/mpl/datatype.hpp \
-   mpl/mpl/displacements.hpp \
-   mpl/mpl/distributed_graph_communicator.hpp \
-   mpl/mpl/distributed_grid.hpp \
-   mpl/mpl/environment.hpp \
-   mpl/mpl/error.hpp \
-   mpl/mpl/flat_memory.hpp \
-   mpl/mpl/graph_communicator.hpp \
-   mpl/mpl/layout.hpp \
-   mpl/mpl/message.hpp \
-   mpl/mpl/mpl.hpp \
-   mpl/mpl/operator.hpp \
-   mpl/mpl/ranks.hpp \
-   mpl/mpl/request.hpp \
-   mpl/mpl/status.hpp \
-   mpl/mpl/tag.hpp \
-   mpl/mpl/topology_communicator.hpp \
-   mpl/mpl/utility.hpp \
-   mpl/mpl/vector.hpp
-
 test_io_SOURCES = test_io.C \
 		  test_fortran_io.f90 test_fortran_io.h \
                   process_cmdline.C process_cmdline.h \
@@ -91,6 +67,14 @@ test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
 is_list_unique_SOURCES = is_list_unique.C is_list_unique.h process_cmdline.C \
                          parallel_sort.c parallel_sort.h
+
+if ENABLE_MPL
+  bin_PROGRAMS += parallel_sort_mpl
+
+  parallel_sort_mpl_SOURCES = parallel_sort_mpl.C
+  parallel_sort_mpl_CPPFLAGS = -I$(top_srcdir)/mpl
+endif
+
 DISTCLEANFILES = *~
 
 #

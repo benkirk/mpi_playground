@@ -14,7 +14,7 @@ AC_CONFIG_HEADERS([mpi_play_config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([dist-bzip2 subdir-objects color-tests 1.11])
+AM_INIT_AUTOMAKE([dist-bzip2 tar-pax subdir-objects color-tests 1.11])
 # use silent rules - automake 1.11
 AM_SILENT_RULES(yes)
 
@@ -23,6 +23,8 @@ AC_PROG_CXX([mpicxx mpic++ mpiCC])
 AC_PROG_CC([mpicc])
 AC_PROG_FC([mpif90])
 AC_PROG_F77([mpif90])
+AC_CHECK_PROGS([MPIEXEC], [mpiexec mpiexec_mpt mpirun], [mpiexec])
+
 AC_FC_LIBRARY_LDFLAGS
 AC_FC_WRAPPERS
 AM_PATH_PYTHON
@@ -52,6 +54,9 @@ AM_CONDITIONAL(ENABLE_LIBMESH, test x$have_libmesh = xyes)
 
 # Checks for libraries.
 AC_CHECK_FILE($top_srcdir/mpl/mpl/mpl.hpp, [have_mpl=yes], [have_mpl=no])
+if test "x$have_mpl" = xyes; then
+   AC_DEFINE(HAVE_MPL,1,[Define if the C++ MPI MPL layer is available])
+fi
 AM_CONDITIONAL(ENABLE_MPL, test x$have_mpl = xyes)
 
 # Checks for MPI features
