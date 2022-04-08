@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <stdio.h>
 #include <numeric>
-#include <boost/timer.hpp>
+//#include <boost/timer.hpp>
 #include <mpi.h>
 
 #ifdef HAVE_HDF5
@@ -30,6 +30,22 @@ namespace
   const unsigned int bytes_per_MB = 1024 * 1024;
   const unsigned int bytes_per_GB = bytes_per_MB * 1024;
   const std::string DATASET_NAME("dset");
+
+  class my_timer
+  {
+  private:
+    double t_start;
+  public:
+
+    my_timer() :
+      t_start(MPI_Wtime())
+    {}
+
+    double elapsed() const { return (MPI_Wtime() - this->t_start); }
+
+    void restart() { t_start = MPI_Wtime(); }
+  };
+
 }
 
 
@@ -49,7 +65,7 @@ void print_bw (const std::string &label, const std::size_t bytes, const double t
 template <typename T>
 void init_vector (std::vector<T> &data)
 {
-  boost::timer timer;
+  my_timer timer;
   data.resize(opts.bufsize);
 
   if (!opts.write)
@@ -69,8 +85,6 @@ void init_vector (std::vector<T> &data)
 
 void write_xdr (std::vector<double> &data)
 {
-  boost::timer t;
-
   XDR *xdrs = new XDR;
   std::string fname = io_basename + ".xdr";
   FILE  *fp = fopen(fname.c_str(), "w");
@@ -94,8 +108,6 @@ void write_xdr (std::vector<double> &data)
 
 void read_xdr (std::vector<double> &data)
 {
-  boost::timer t;
-
   XDR *xdrs = new XDR;
   std::string fname = io_basename + ".xdr";
   FILE  *fp = fopen(fname.c_str(), "r");
@@ -122,8 +134,6 @@ void read_xdr (std::vector<double> &data)
 
 void write_c (std::vector<double> &data)
 {
-  boost::timer t;
-
   std::string fname = io_basename + ".bin";
   FILE *fp = fopen(fname.c_str(), "w");
 
@@ -140,8 +150,6 @@ void write_c (std::vector<double> &data)
 
 void read_c (std::vector<double> &data)
 {
-  boost::timer t;
-
   std::string fname = io_basename + ".bin";
   FILE *fp = fopen(fname.c_str(), "r");
 
@@ -163,8 +171,6 @@ void read_c (std::vector<double> &data)
 
 void write_h5 (std::vector<double> &data)
 {
-  boost::timer t;
-
   std::string fname = io_basename + ".h5";
 
   // we create a new hdf5 file
@@ -183,8 +189,6 @@ void write_h5 (std::vector<double> &data)
 
 void read_h5 (std::vector<double> &data)
 {
-  boost::timer t;
-
   std::string fname = io_basename + ".h5";
 
   // we create a new hdf5 file
@@ -218,7 +222,7 @@ int main (int argc, char **argv)
   }
 
   {
-    boost::timer t;
+    my_timer t;
     std::vector<double> data;
     init_vector(data);
 
