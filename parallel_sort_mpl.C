@@ -2,18 +2,30 @@
 #include <random>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 #include <mpl/mpl.hpp>
+#include "parallel_sort_mpl.h"
+
 
 static std::random_device rd;
 static std::mt19937_64 mt(rd());
 
-double get_random() {
+double get_random_double() {
   std::uniform_real_distribution<double> dist(0, 1);
   return dist(mt);
 }
 
+long get_random_long() {
+  std::uniform_int_distribution<long> dist;
+  return dist(mt);
+}
+
 void fill_random(std::vector<double> &v) {
-  std::generate(std::begin(v), std::end(v), get_random);
+  std::generate(std::begin(v), std::end(v), get_random_double);
+}
+
+void fill_random(std::vector<long> &v) {
+  std::generate(std::begin(v), std::end(v), get_random_long);
 }
 
 // parallel sort algorithm for distributed memory computers
@@ -31,51 +43,104 @@ void fill_random(std::vector<double> &v) {
 // In worst case, a single process may hold finally all data.
 //
 template<typename T>
-void parallel_sort(std::vector<T> &v) {
+void parallel_sort(std::vector<T> &v)
+{
   auto &comm_world{mpl::environment::comm_world()};
   const int rank{comm_world.rank()};
   const int size{comm_world.size()};
+
   std::vector<T> local_pivots, pivots(size * (size - 1));
   std::sample(begin(v), end(v), std::back_inserter(local_pivots), size - 1, mt);
   comm_world.allgather(local_pivots.data(), mpl::vector_layout<T>(size - 1), pivots.data(),
                        mpl::vector_layout<T>(size - 1));
   std::sort(begin(pivots), end(pivots));
+
   local_pivots.clear();
   for (std::size_t i{1}; i < static_cast<std::size_t>(size); ++i)
     local_pivots.push_back(pivots[i * (size - 1)]);
-  swap(local_pivots, pivots);
+  std::swap(local_pivots, pivots);
+
   std::vector<typename std::vector<T>::iterator> pivot_pos;
   pivot_pos.push_back(begin(v));
   for (T p : pivots)
     pivot_pos.push_back(std::partition(pivot_pos.back(), end(v), [p](T x) { return x < p; }));
   pivot_pos.push_back(end(v));
+
   std::vector<int> local_block_sizes, block_sizes(size * size);
   for (std::size_t i{0}; i < pivot_pos.size() - 1; ++i)
     local_block_sizes.push_back(
         static_cast<int>(std::distance(pivot_pos[i], pivot_pos[i + 1])));
+
   comm_world.allgather(local_block_sizes.data(), mpl::vector_layout<int>(size),
                        block_sizes.data(), mpl::vector_layout<int>(size));
+
   mpl::layouts<T> send_layouts, recv_layouts;
   int send_pos{0}, recv_pos{0};
+
   for (int i{0}; i < size; ++i) {
     send_layouts.push_back(mpl::indexed_layout<T>({{block_sizes[rank * size + i], send_pos}}));
     send_pos += block_sizes[rank * size + i];
     recv_layouts.push_back(mpl::indexed_layout<T>({{block_sizes[rank + size * i], recv_pos}}));
     recv_pos += block_sizes[rank + size * i];
   }
+
   std::vector<T> v_2(recv_pos);
   comm_world.alltoallv(v.data(), send_layouts, v_2.data(), recv_layouts);
+
   std::sort(begin(v_2), end(v_2));
-  swap(v, v_2);
+
+  std::swap(v, v_2);
 }
 
-int main() {
+
+
+int run_parallel_sort_mpl()
+{
+  return 0;
+}
+
+
+
+#ifdef BUILD_APP
+int main (int argc, char **argv)
+{
   const auto &comm_world{mpl::environment::comm_world()};
   const int size{comm_world.size()};
+  const int rank{comm_world.rank()};
 
-  const std::size_t N{100000000 / static_cast<std::size_t>(size)};
-  std::vector<double> v(N);
+  //const std::size_t N{100000000 / static_cast<std::size_t>(size)};
+  const std::size_t N{5000 / static_cast<std::size_t>(size)};
+  std::vector<long> v(N);
   fill_random(v);
+  v[0] = v[1];
   parallel_sort(v);
+
+  for (auto r=0; r<size; r++) {
+    comm_world.barrier();
+    if (rank == r) {
+      std::cout << "Rank " << rank << ", sorted (" << v.size() << ")" << std::endl;
+
+      bool has_dups = false;
+      for (std::size_t i=0; i<v.size(); i++)
+        {
+          std::string sep{" "};
+          if (i != 0 && (v[i-1] == v[i])) {
+            has_dups = true;
+            sep = "<--- ";
+          }
+          std::cout << v[i] << sep;
+        }
+      if (has_dups)
+        std::cout << " *** is NOT unique ***";
+      else
+        std::cout << " is unique";
+
+      std::cout << std::endl;
+    }
+  }
+
+  // check for global duplicates
+
   return EXIT_SUCCESS;
 }
+#endif

@@ -67,12 +67,14 @@ test_io_CPPFLAGS = $(HDF5_CPPFLAGS) -I$(top_srcdir)/H5/include
 
 is_list_unique_SOURCES = is_list_unique.C is_list_unique.h process_cmdline.C \
                          parallel_sort.c parallel_sort.h
+is_list_unique_CCFLAGS = -Wall
 
 if ENABLE_MPL
   bin_PROGRAMS += parallel_sort_mpl
 
   parallel_sort_mpl_SOURCES = parallel_sort_mpl.C
-  parallel_sort_mpl_CPPFLAGS = -I$(top_srcdir)/mpl
+  parallel_sort_mpl_CPPFLAGS = -I$(top_srcdir)/mpl -DBUILD_APP
+  parallel_sort_mpl_CXXFLAGS = -Wall
 endif
 
 DISTCLEANFILES = *~
