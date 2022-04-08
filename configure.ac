@@ -1,12 +1,15 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
-AC_INIT([mpi_play], [0.0.1], [benjamin.kirk@nasa.gov])
+AC_PREREQ([2.71])
+AC_INIT([mpi_play],[0.0.1],[benjamin.kirk@nasa.gov])
 AC_MSG_RESULT(---------------------------------------------)
 AC_MSG_RESULT(-------- Configuring MPI Playground ---------)
 AC_MSG_RESULT(---------------------------------------------)
-AC_CONFIG_SRCDIR([ibarrier.C])
+#AC_CONFIG_SRCDIR([ibarrier.C])
+top_srcdir=`dirname $0`
+srcdir=`dirname $0`
+AC_CHECK_FILE(ibarrier.C, [vpath_build=no], [vpath_build=yes])
 AC_CONFIG_HEADERS([mpi_play_config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -48,6 +51,8 @@ fi
 AM_CONDITIONAL(ENABLE_LIBMESH, test x$have_libmesh = xyes)
 
 # Checks for libraries.
+AC_CHECK_FILE($top_srcdir/mpl/mpl/mpl.hpp, [have_mpl=yes], [have_mpl=no])
+AM_CONDITIONAL(ENABLE_MPL, test x$have_mpl = xyes)
 
 # Checks for MPI features
 AC_CHECK_FUNC([MPI_Win_create], [mpi_win_create=true])
@@ -69,6 +74,7 @@ AC_CONFIG_SUBDIRS([osu-benchmarks])
 # Set up output files
 AC_CONFIG_FILES([Makefile
                  libmesh_apps/Makefile
+                 mpl_examples/Makefile
                  mpi4py/Makefile
                  mpi4py/py_wrapper
                  ])

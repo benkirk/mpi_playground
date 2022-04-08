@@ -8,6 +8,10 @@
 #include <ctime>
 #include <random>
 #include <mpi.h>
+#ifdef HAVE_CONFIG_H
+# include "mpi_play_config.h"
+#endif
+
 
 namespace MPI_Playground
 {
