@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.71])
+AC_PREREQ([2.69])
 AC_INIT([mpi_play],[0.0.1],[benjamin.kirk@nasa.gov])
 AC_MSG_RESULT(---------------------------------------------)
 AC_MSG_RESULT(-------- Configuring MPI Playground ---------)
@@ -27,6 +27,7 @@ AC_CHECK_PROGS([MPIEXEC], [mpiexec mpiexec_mpt mpirun], [mpiexec])
 
 AC_FC_LIBRARY_LDFLAGS
 AC_FC_WRAPPERS
+AM_PROG_CC_C_O # mpl_examples/Makefile.am:74: warning: compiling ... in subdir requires 'AM_PROG_CC_C_O'
 AM_PATH_PYTHON
 AC_ARG_VAR(PYTHONPATH, compile-time PYTHONPATH (e.g. for mpi4py))
 
