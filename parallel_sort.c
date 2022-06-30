@@ -29,7 +29,7 @@
 
 
 void fill_random(CVector v) {
-  for (size_t i = 0; i < v.N; ++i) {
+  for (int i = 0; i < v.N; ++i) {
 #ifdef DO_DOUBLE
     v.data[i] = (double)rand() / (RAND_MAX + 1.);
 #else
@@ -100,7 +100,7 @@ CVector parallel_sort(CVector v) {
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 
   for (int i = 0; i < size - 1; ++i)
-    local_pivots[i] = v.data[(size_t)(v.N * (double)rand() / (RAND_MAX + 1.))];
+    local_pivots[i] = v.data[(int)(v.N * (double)rand() / (RAND_MAX + 1.))];
 
   MPI_Allgather(local_pivots, size - 1, MY_MPI_DATATYPE,
                 pivots, size - 1, MY_MPI_DATATYPE,
@@ -108,7 +108,7 @@ CVector parallel_sort(CVector v) {
 
   qsort(pivots, size * (size - 1), sizeof(datatype), cmp);
 
-  for (size_t i = 1; i < size; ++i)
+  for (int i = 1; i < size; ++i)
     local_pivots[i - 1] = pivots[i * (size - 1)];
 
   datatype **pivot_pos = malloc((size + 1) * sizeof(*pivot_pos));
@@ -116,7 +116,7 @@ CVector parallel_sort(CVector v) {
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 
   pivot_pos[0] = v.data;
-  for (size_t i = 0; i < size - 1; ++i)
+  for (int i = 0; i < size - 1; ++i)
     pivot_pos[i + 1] = partition(pivot_pos[i], v.data + v.N, local_pivots[i]);
   pivot_pos[size] = v.data + v.N;
 
@@ -128,7 +128,7 @@ CVector parallel_sort(CVector v) {
   if (block_sizes == NULL)
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 
-  for (size_t i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i)
     local_block_sizes[i] = pivot_pos[i + 1] - pivot_pos[i];
 
   MPI_Allgather(local_block_sizes, size, MPI_INT, block_sizes, size, MPI_INT, MPI_COMM_WORLD);
@@ -136,7 +136,7 @@ CVector parallel_sort(CVector v) {
   int send_pos = 0, recv_pos = 0;
   int sendcounts[size], sdispls[size], recvcounts[size], rdispls[size];
 
-  for (size_t i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) {
     sendcounts[i] = block_sizes[rank * size + i];
     sdispls[i] = send_pos;
     send_pos += block_sizes[rank * size + i];
@@ -173,8 +173,8 @@ int run_unique_check()
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   srand(time(NULL) * rank);
 
-  //const size_t N = 100000000 / size;
-  const size_t N = 5000 / size;
+  //const int N = 100000000 / size;
+  const int N = 5000 / size;
   datatype *v = malloc(N * sizeof(*v));
   if (v == NULL)
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);

@@ -2,6 +2,7 @@
 #include <getopt.h>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 
 namespace MPI_Playground {
 
@@ -58,8 +59,14 @@ namespace MPI_Playground {
             break;
 
           case 'S':
-            opts.nbytes  = static_cast<unsigned int>(std::atof(optarg));
+            opts.nbytes  = static_cast<std::size_t>(std::atof(optarg));
             opts.bufsize = opts.nbytes / sizeof(double);
+	    std::cout << "optarg=" << optarg
+		      << ", std::atof(optarg)=" << std::atof(optarg)
+		      << ", opts.nbytes=" << opts.nbytes
+		      << ", opts.bufsize=" << opts.bufsize
+		      << ", std::numeric_limits<std::size_t>::max()=" << std::numeric_limits<std::size_t>::max()
+		      << std::endl;
             break;
 	  }
       }

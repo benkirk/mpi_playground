@@ -2,6 +2,7 @@
 #define PROCESS_CMDLINE_H
 
 #include <set>
+#include <cstddef>
 
 namespace MPI_Playground {
 
@@ -15,8 +16,8 @@ namespace MPI_Playground {
     bool do_c;
     bool do_h5;
     bool do_fortran;
-    unsigned int nbytes;
-    unsigned int bufsize;
+    std::size_t nbytes;
+    std::size_t bufsize;
 
     Options ()
     {
