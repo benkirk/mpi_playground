@@ -9,9 +9,8 @@ nranks = comm.Get_size()
 
 i_am_root =  True if (rank == 0) else False
 
-# create a slave-only communicator for collective IO
-int_size =   np.zeros(1, dtype=np.int).itemsize
-float_size = np.zeros(1, dtype=np.float).itemsize
+int_size =   np.zeros(1, dtype=np.int64).itemsize
+float_size = np.zeros(1, dtype=np.float64).itemsize
 
 fname = './collective_data.contig'
 
@@ -26,7 +25,7 @@ def read():
     filesize = fd.Get_size()
 
     # read header, includes number of write ranks and buffer sizes
-    rbuf = np.empty(1, np.int)
+    rbuf = np.empty(1, np.int64)
     fd.Read_all(rbuf)
     nranks_read = rbuf[0]
     head_offset = (1 + nranks_read)*int_size
@@ -35,7 +34,7 @@ def read():
     # nranks.  At least 1, but can be more when nranks_read > nranks
     n_steps = 1 if nranks_read <= nranks else 1+int(nranks_read/nranks)
 
-    bsizes = np.empty(nranks_read, dtype=np.int)
+    bsizes = np.empty(nranks_read, dtype=np.int64)
     fd.Read_all(bsizes)
 
     if i_am_root:
@@ -56,7 +55,7 @@ def read():
         step_rank = rstep*nranks+rank
         assert  step_rank < bsizes.size
         bsize = bsizes[step_rank]
-        buf = np.empty(bsize, dtype=np.float)
+        buf = np.empty(bsize, dtype=np.float64)
         data_offset = offsets[step_rank]*float_size + head_offset
 
         # collective read, each rank at their own offset
