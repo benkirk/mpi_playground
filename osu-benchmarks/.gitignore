@@ -33,3 +33,4 @@ mpi/pt2pt/osu_latency
 mpi/pt2pt/osu_latency_mt
 mpi/pt2pt/osu_mbw_mr
 mpi/pt2pt/osu_multi_lat
+ltmain.sh

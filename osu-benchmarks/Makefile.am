@@ -16,13 +16,13 @@ if OSHM
     SUBDIRS += openshmem
 endif
 
-if UPC
-    SUBDIRS += upc
-endif
+# if UPC
+#     SUBDIRS += upc
+# endif
 
-if UPCXX
-    SUBDIRS += upcxx
-endif
+# if UPCXX
+#     SUBDIRS += upcxx
+# endif
 
 if NCCL
     SUBDIRS += nccl
