@@ -1,581 +1,311 @@
 #define BENCHMARK "OSU MPI%s Latency Test"
 /*
- * Copyright (C) 2002-2013 the Network-Based Computing Laboratory
- * (NBCL), The Ohio State University. 
+ * Copyright (C) 2002-2021 the Network-Based Computing Laboratory
+ * (NBCL), The Ohio State University.
  *
  * Contact: Dr. D. K. Panda (panda@cse.ohio-state.edu)
  *
  * For detailed copyright and licensing information, please refer to the
  * copyright file COPYRIGHT in the top level OMB directory.
  */
+#include <osu_util_mpi.h>
 
-#include <mpi.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
-
-#ifdef _ENABLE_OPENACC_
-#include <openacc.h>
-#endif
-
-#ifdef _ENABLE_CUDA_
-#include <cuda.h>
-#include <cuda_runtime.h>
-#endif
-
-#ifdef PACKAGE_VERSION
-#   define HEADER "# " BENCHMARK " v" PACKAGE_VERSION "\n"
-#else
-#   define HEADER "# " BENCHMARK "\n"
-#endif
-
-#ifndef FIELD_WIDTH
-#   define FIELD_WIDTH 20
-#endif
-
-#ifndef FLOAT_PRECISION
-#   define FLOAT_PRECISION 2
-#endif
-
-#define MESSAGE_ALIGNMENT 64
-#define MAX_ALIGNMENT 65536
-#define MAX_MSG_SIZE (1<<22)
-#define MYBUFSIZE (MAX_MSG_SIZE + MAX_ALIGNMENT)
-
-#define LOOP_LARGE  100
-#define SKIP_LARGE  10
-#define LARGE_MESSAGE_SIZE  8192
-
-#ifdef _ENABLE_OPENACC_
-#   define OPENACC_ENABLED 1
-#else
-#   define OPENACC_ENABLED 0
-#endif
-
-#ifdef _ENABLE_CUDA_
-#   define CUDA_ENABLED 1
-#else
-#   define CUDA_ENABLED 0
-#endif
-
-char s_buf_original[MYBUFSIZE];
-char r_buf_original[MYBUFSIZE];
-
-int skip = 1000;
-int loop = 10000;
-
-#ifdef _ENABLE_CUDA_
-CUcontext cuContext;
-#endif
-
-enum po_ret_type {
-    po_cuda_not_avail,
-    po_openacc_not_avail,
-    po_bad_usage,
-    po_help_message,
-    po_okay,
-};
-
-enum accel_type {
-    none,
-    cuda,
-    openacc
-};
-
-struct {
-    char src;
-    char dst;
-    enum accel_type accel;
-} options;
-
-void usage (void);
-int init_cuda_context (void);
-int destroy_cuda_context (void);
-int process_options (int argc, char *argv[]);
-int allocate_memory (char **sbuf, char **rbuf, int rank);
-void print_header (int rank);
-void touch_data (void *sbuf, void *rbuf, int rank, size_t size);
-void free_memory (void *sbuf, void *rbuf, int rank);
+#ifdef _ENABLE_CUDA_KERNEL_
+double measure_kernel_lo(char *, int);
+void touch_managed_src(char *, int);
+void touch_managed_dst(char *, int);
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
+double calculate_total(double, double, double);
 
 int
 main (int argc, char *argv[])
 {
-    int myid, numprocs, i;
+    int myid, numprocs, i, j;
     int size;
     MPI_Status reqstat;
     char *s_buf, *r_buf;
-    double t_start = 0.0, t_end = 0.0;
-    int po_ret = process_options(argc, argv);
+    double t_start = 0.0, t_end = 0.0, t_lo = 0.0, t_total = 0.0;
+    int po_ret = 0;
+    int errors = 0;
 
-    if (po_okay == po_ret && cuda == options.accel) {
-        if (init_cuda_context()) {
-            fprintf(stderr, "Error initializing cuda context\n");
+    options.bench = PT2PT;
+    options.subtype = LAT;
+
+    set_header(HEADER);
+    set_benchmark_name("osu_latency");
+
+    po_ret = process_options(argc, argv);
+
+    if (PO_OKAY == po_ret && NONE != options.accel) {
+        if (init_accel()) {
+            fprintf(stderr, "Error initializing device\n");
             exit(EXIT_FAILURE);
         }
     }
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+    MPI_CHECK(MPI_Init(&argc, &argv));
+    MPI_CHECK(MPI_Comm_size(MPI_COMM_WORLD, &numprocs));
+    MPI_CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &myid));
 
     if (0 == myid) {
         switch (po_ret) {
-            case po_cuda_not_avail:
+            case PO_CUDA_NOT_AVAIL:
                 fprintf(stderr, "CUDA support not enabled.  Please recompile "
                         "benchmark with CUDA support.\n");
                 break;
-            case po_openacc_not_avail:
+            case PO_OPENACC_NOT_AVAIL:
                 fprintf(stderr, "OPENACC support not enabled.  Please "
                         "recompile benchmark with OPENACC support.\n");
                 break;
-            case po_bad_usage:
-            case po_help_message:
-                usage();
+            case PO_BAD_USAGE:
+                print_bad_usage_message(myid);
+                break;
+            case PO_HELP_MESSAGE:
+                print_help_message(myid);
+                break;
+            case PO_VERSION_MESSAGE:
+                print_version_message(myid);
+                MPI_CHECK(MPI_Finalize());
+                exit(EXIT_SUCCESS);
+            case PO_OKAY:
                 break;
         }
     }
 
     switch (po_ret) {
-        case po_cuda_not_avail:
-        case po_openacc_not_avail:
-        case po_bad_usage:
-            MPI_Finalize();
+        case PO_CUDA_NOT_AVAIL:
+        case PO_OPENACC_NOT_AVAIL:
+        case PO_BAD_USAGE:
+            MPI_CHECK(MPI_Finalize());
             exit(EXIT_FAILURE);
-        case po_help_message:
-            MPI_Finalize();
+        case PO_HELP_MESSAGE:
+        case PO_VERSION_MESSAGE:
+            MPI_CHECK(MPI_Finalize());
             exit(EXIT_SUCCESS);
-        case po_okay:
+        case PO_OKAY:
             break;
     }
 
-    if(numprocs != 2) {
-        if(myid == 0) {
+    if (numprocs != 2) {
+        if (myid == 0) {
             fprintf(stderr, "This test requires exactly two processes\n");
         }
 
-        MPI_Finalize();
+        MPI_CHECK(MPI_Finalize());
         exit(EXIT_FAILURE);
     }
 
-    if (allocate_memory(&s_buf, &r_buf, myid)) {
-        /* Error allocating memory */
-        MPI_Finalize();
-        exit(EXIT_FAILURE);
-    }
-
-    print_header(myid);
-
-    /* Latency test */
-    for(size = 0; size <= MAX_MSG_SIZE; size = (size ? size * 2 : 1)) {
-        touch_data(s_buf, r_buf, myid, size);
-
-        if(size > LARGE_MESSAGE_SIZE) {
-            loop = LOOP_LARGE;
-            skip = SKIP_LARGE;
-        }
-
-        MPI_Barrier(MPI_COMM_WORLD);
-
-        if(myid == 0) {
-            for(i = 0; i < loop + skip; i++) {
-                if(i == skip) t_start = MPI_Wtime();
-
-                MPI_Send(s_buf, size, MPI_CHAR, 1, 1, MPI_COMM_WORLD);
-                MPI_Recv(r_buf, size, MPI_CHAR, 1, 1, MPI_COMM_WORLD, &reqstat);
-            }
-
-            t_end = MPI_Wtime();
-        }
-
-        else if(myid == 1) {
-            for(i = 0; i < loop + skip; i++) {
-                MPI_Recv(r_buf, size, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &reqstat);
-                MPI_Send(s_buf, size, MPI_CHAR, 0, 1, MPI_COMM_WORLD);
-            }
-        }
-
-        if(myid == 0) {
-            double latency = (t_end - t_start) * 1e6 / (2.0 * loop);
-
-            fprintf(stdout, "%-*d%*.*f\n", 10, size, FIELD_WIDTH,
-                    FLOAT_PRECISION, latency);
-            fflush(stdout);
-        }
-    }
-
-    free_memory(s_buf, r_buf, myid);
-    MPI_Finalize();
-
-    if (cuda == options.accel) {
-        if (destroy_cuda_context()) {
-            fprintf(stderr, "Error destroying cuda context\n");
+    if (options.buf_num == SINGLE) {
+        if (allocate_memory_pt2pt(&s_buf, &r_buf, myid)) {
+            /* Error allocating memory */
+            MPI_CHECK(MPI_Finalize());
             exit(EXIT_FAILURE);
         }
     }
 
+    print_header(myid, LAT);
+
+    /* Latency test */
+    for (size = options.min_message_size; size <= options.max_message_size;
+            size = (size ? size * 2 : 1)) {
+
+        if (options.buf_num == MULTIPLE) {
+            if (allocate_memory_pt2pt_size(&s_buf, &r_buf, myid, size)) {
+                /* Error allocating memory */
+                MPI_CHECK(MPI_Finalize());
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        set_buffer_pt2pt(s_buf, myid, options.accel, 'a', size);
+        set_buffer_pt2pt(r_buf, myid, options.accel, 'b', size);
+
+        if (size > LARGE_MESSAGE_SIZE) {
+            options.iterations = options.iterations_large;
+            options.skip = options.skip_large;
+        }
+
+#ifdef _ENABLE_CUDA_KERNEL_
+        if ((options.src == 'M' && options.MMsrc == 'D') ||
+            (options.dst == 'M' && options.MMdst == 'D')) {
+            t_lo = measure_kernel_lo(s_buf, size);
+        }
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
+
+        MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
+        t_total = 0.0;
+
+        for (i = 0; i < options.iterations + options.skip; i++) {
+            if (options.validate) {
+                set_buffer_validation(s_buf, r_buf, size, options.accel, i);
+                MPI_CHECK(MPI_Barrier(MPI_COMM_WORLD));
+            }
+            if (myid == 0) {
+                for (j = 0; j <= options.warmup_validation; j++) {
+                    if (i >= options.skip && j == options.warmup_validation) {
+                        t_start = MPI_Wtime();
+                    }
+#ifdef _ENABLE_CUDA_KERNEL_
+                    if (options.src == 'M') {
+                        touch_managed_src(s_buf, size);
+                    }
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
+                    MPI_CHECK(MPI_Send(s_buf, size, MPI_CHAR, 1, 1,
+                                MPI_COMM_WORLD));
+                    MPI_CHECK(MPI_Recv(r_buf, size, MPI_CHAR, 1, 1,
+                                MPI_COMM_WORLD, &reqstat));
+#ifdef _ENABLE_CUDA_KERNEL_
+                    if (options.src == 'M') {
+                        touch_managed_src(r_buf, size);
+                    }
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
+                    if (i >= options.skip && j == options.warmup_validation) {
+                        t_end = MPI_Wtime();
+                        t_total += calculate_total(t_start, t_end, t_lo);
+                    }
+                }
+                if (options.validate) {
+                    int errors_recv = 0;
+                    MPI_CHECK(MPI_Recv(&errors_recv, 1, MPI_INT, 1, 2,
+                                MPI_COMM_WORLD, &reqstat));
+                    errors += errors_recv;
+                }
+            } else if (myid == 1) {
+                for (j = 0; j <= options.warmup_validation; j++) {
+#ifdef _ENABLE_CUDA_KERNEL_
+                    if (options.dst == 'M') {
+                        touch_managed_dst(s_buf, size);
+                    }
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
+                    MPI_CHECK(MPI_Recv(r_buf, size, MPI_CHAR, 0, 1,
+                                MPI_COMM_WORLD, &reqstat));
+#ifdef _ENABLE_CUDA_KERNEL_
+                    if (options.dst == 'M') {
+                        touch_managed_dst(r_buf, size);
+                    }
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
+                    MPI_CHECK(MPI_Send(s_buf, size, MPI_CHAR, 0, 1,
+                                MPI_COMM_WORLD));
+                }
+                if (options.validate) {
+                    errors = validate_data(r_buf, size, 1, options.accel, i);
+                    MPI_CHECK(MPI_Send(&errors, 1, MPI_INT, 0, 2,
+                                MPI_COMM_WORLD));
+                }
+            }
+        }
+
+        if (myid == 0) {
+            double latency = (t_total * 1e6) / (2.0 * options.iterations);
+            if (options.validate) {
+                fprintf(stdout, "%-*d%*.*f%*s\n", 10, size, FIELD_WIDTH,
+                        FLOAT_PRECISION, latency, FIELD_WIDTH,
+                        VALIDATION_STATUS(errors));
+            } else{
+                fprintf(stdout, "%-*d%*.*f\n", 10, size, FIELD_WIDTH,
+                        FLOAT_PRECISION, latency);
+            }
+            fflush(stdout);
+        }
+        if (options.buf_num == MULTIPLE) {
+            free_memory(s_buf, r_buf, myid);
+        }
+
+        if (options.validate) {
+            MPI_CHECK(MPI_Bcast(&errors, 1, MPI_INT, 0, MPI_COMM_WORLD));
+            if (0 != errors) {
+                break;
+            }
+        }
+    }
+
+    if (options.buf_num == SINGLE) {
+        free_memory(s_buf, r_buf, myid);
+    }
+
+    MPI_CHECK(MPI_Finalize());
+
+    if (NONE != options.accel) {
+        if (cleanup_accel()) {
+            fprintf(stderr, "Error cleaning up device\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (errors !=0 && options.validate && myid == 0 ) {
+        fprintf(stdout, "DATA VALIDATION ERROR: %s exited with status %d on"
+                " message size %d.\n", argv[0], EXIT_FAILURE, size);
+        exit(EXIT_FAILURE);
+    }
     return EXIT_SUCCESS;
 }
 
-void
-usage (void)
+#ifdef _ENABLE_CUDA_KERNEL_
+double measure_kernel_lo(char *buf, int size)
 {
-    if (CUDA_ENABLED || OPENACC_ENABLED) {
-        printf("Usage: osu_latency [options] [RANK0 RANK1]\n\n");
-        printf("RANK0 and RANK1 may be `D' or `H' which specifies whether\n"
-               "the buffer is allocated on the accelerator device or host\n"
-               "memory for each mpi rank\n\n");
+    int i;
+    double t_lo = 0.0, t_start, t_end;
+
+    for (i = 0; i < 10; i++) {
+        launch_empty_kernel(buf, size);
     }
 
-    else {
-        printf("Usage: osu_latency [options]\n\n");
-    }
-    
-    printf("options:\n");
-
-    if (CUDA_ENABLED || OPENACC_ENABLED) {
-        printf("  -d TYPE       accelerator device buffers can be of TYPE "
-                "`cuda' or `openacc'\n");
+    for (i = 0; i < 1000; i++) {
+        t_start = MPI_Wtime();
+        launch_empty_kernel(buf, size);
+        synchronize_stream();
+        t_end = MPI_Wtime();
+        t_lo = t_lo + (t_end - t_start);
     }
 
-    printf("  -h            print this help message\n");
-    fflush(stdout);
+    t_lo = t_lo/1000;
+    return t_lo;
 }
 
-int
-process_options (int argc, char *argv[])
+void touch_managed_src(char *buf, int size)
 {
-    extern char * optarg;
-    extern int optind;
-
-    char const * optstring = (CUDA_ENABLED || OPENACC_ENABLED) ? "+d:h" : "+h";
-    int c;
-
-    /*
-     * set default options
-     */
-    options.src = 'H';
-    options.dst = 'H';
-
-    if (CUDA_ENABLED) {
-        options.accel = cuda;
-    }
-
-    else if (OPENACC_ENABLED) {
-        options.accel = openacc;
-    }
-
-    else {
-        options.accel = none;
-    }
-
-    while((c = getopt(argc, argv, optstring)) != -1) {
-        switch (c) {
-            case 'd':
-                /* optarg should contain cuda or openacc */
-                if (0 == strncasecmp(optarg, "cuda", 10)) {
-                    if (!CUDA_ENABLED) {
-                        return po_cuda_not_avail;
-                    }
-                    options.accel = cuda;
-                }
-
-                else if (0 == strncasecmp(optarg, "openacc", 10)) {
-                    if (!OPENACC_ENABLED) {
-                        return po_openacc_not_avail;
-                    }
-                    options.accel = openacc;
-                }
-
-                else {
-                    return po_bad_usage;
-                }
-                break;
-            case 'h':
-                return po_help_message;
-            default:
-                return po_bad_usage;
-        }
-    }
-
-    if (CUDA_ENABLED || OPENACC_ENABLED) {
-        if ((optind + 2) == argc) {
-            options.src = argv[optind][0];
-            options.dst = argv[optind + 1][0];
-
-            switch (options.src) {
-                case 'D':
-                case 'H':
-                    break;
-                default:
-                    return po_bad_usage;
-            }
-
-            switch (options.dst) {
-                case 'D':
-                case 'H':
-                    break;
-                default:
-                    return po_bad_usage;
-            }
-        }
-
-        else if (optind != argc) {
-            return po_bad_usage;
-        }
-    }
-
-    return po_okay;
-}
-
-int
-init_cuda_context (void)
-{
-#ifdef _ENABLE_CUDA_
-    CUresult curesult = CUDA_SUCCESS;
-    CUdevice cuDevice;
-    int local_rank, dev_count;
-    int dev_id = 0;
-    char * str;
-
-    if ((str = getenv("LOCAL_RANK")) != NULL) {
-        cudaGetDeviceCount(&dev_count);
-        local_rank = atoi(str);
-        dev_id = local_rank % dev_count;
-    }
-
-    curesult = cuInit(0);
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }
-
-    curesult = cuDeviceGet(&cuDevice, dev_id);
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }
-
-    curesult = cuCtxCreate(&cuContext, 0, cuDevice);
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-int
-allocate_device_buffer (char ** buffer)
-{
-#ifdef _ENABLE_CUDA_
-    cudaError_t cuerr = cudaSuccess;
-#endif
-
-    switch (options.accel) {
-#ifdef _ENABLE_CUDA_
-        case cuda:
-            cuerr = cudaMalloc((void **)buffer, MYBUFSIZE);
-
-            if (cudaSuccess != cuerr) {
-                fprintf(stderr, "Could not allocate device memory\n");
-                return 1;
-            }
-            break;
-#endif
-#ifdef _ENABLE_OPENACC_
-        case openacc:
-            *buffer = acc_malloc(MYBUFSIZE);
-            if (NULL == *buffer) {
-                fprintf(stderr, "Could not allocate device memory\n");
-                return 1;
-            }
-            break;
-#endif
-        default:
-            fprintf(stderr, "Could not allocate device memory\n");
-            return 1;
-    }
-
-    return 0;
-}
-
-void *
-align_buffer (void * ptr, unsigned long align_size)
-{
-    return (void *)(((unsigned long)ptr + (align_size - 1)) / align_size *
-            align_size);
-}
-
-int
-allocate_memory (char ** sbuf, char ** rbuf, int rank)
-{
-    unsigned long align_size = getpagesize();
-
-    assert(align_size <= MAX_ALIGNMENT);
-
-    switch (rank) {
-        case 0:
-            if ('D' == options.src) {
-                if (allocate_device_buffer(sbuf)) {
-                    fprintf(stderr, "Error allocating cuda memory\n");
-                    return 1;
-                }
-
-                if (allocate_device_buffer(rbuf)) {
-                    fprintf(stderr, "Error allocating cuda memory\n");
-                    return 1;
-                }
-            }
-
-            else {
-                *sbuf = align_buffer(s_buf_original, align_size);
-                *rbuf = align_buffer(r_buf_original, align_size);
-            }
-            break;
-        case 1:
-            if ('D' == options.dst) {
-                if (allocate_device_buffer(sbuf)) {
-                    fprintf(stderr, "Error allocating cuda memory\n");
-                    return 1;
-                }
-
-                if (allocate_device_buffer(rbuf)) {
-                    fprintf(stderr, "Error allocating cuda memory\n");
-                    return 1;
-                }
-            }
-
-            else {
-                *sbuf = align_buffer(s_buf_original, align_size);
-                *rbuf = align_buffer(r_buf_original, align_size);
-            }
-            break;
-    }
-
-    return 0;
-}
-
-void
-print_header (int rank)
-{
-    if (0 == rank) {
-        switch (options.accel) {
-            case cuda:
-                printf(HEADER, "-CUDA");
-                break;
-            case openacc:
-                printf(HEADER, "-OPENACC");
-                break;
-            default:
-                printf(HEADER, "");
-                break;
-        }
-
-        switch (options.accel) {
-            case cuda:
-            case openacc:
-                printf("# Send Buffer on %s and Receive Buffer on %s\n",
-                        'D' == options.src ? "DEVICE (D)" : "HOST (H)",
-                        'D' == options.dst ? "DEVICE (D)" : "HOST (H)");
-            default:
-                printf("%-*s%*s\n", 10, "# Size", FIELD_WIDTH, "Latency (us)");
-                fflush(stdout);
+    if (options.src == 'M') {
+        if (options.MMsrc == 'D') {
+            touch_managed(buf, size);
+            synchronize_stream();
+        } else if ((options.MMsrc == 'H') && size > PREFETCH_THRESHOLD) {
+            prefetch_data(buf, size, cudaCpuDeviceId);
+            synchronize_stream();
+        } else {
+            memset(buf, 'c', size);
         }
     }
 }
 
-void
-set_device_memory (void * ptr, int data, size_t size)
+void touch_managed_dst(char *buf, int size)
 {
-#ifdef _ENABLE_OPENACC_
-    size_t i;
-    char * p = (char *)ptr;
-#endif
-
-    switch (options.accel) {
-#ifdef _ENABLE_CUDA_
-        case cuda:
-            cudaMemset(ptr, data, size);
-            break;
-#endif
-#ifdef _ENABLE_OPENACC_
-        case openacc:
-#pragma acc parallel loop deviceptr(p)
-            for(i = 0; i < size; i++) {
-                p[i] = data;
-            }
-            break;
-#endif
-        default:
-            break;
+    if (options.dst == 'M') {
+        if (options.MMdst == 'D') {
+            touch_managed(buf, size);
+            synchronize_stream();
+        } else if ((options.MMdst == 'H') && size > PREFETCH_THRESHOLD) {
+            prefetch_data(buf, size, -1);
+            synchronize_stream();
+        } else {
+            memset(buf, 'c', size);
+        }
     }
 }
+#endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
 
-void
-touch_data (void * sbuf, void * rbuf, int rank, size_t size)
+double calculate_total(double t_start, double t_end, double t_lo)
 {
-    if ((0 == rank && 'H' == options.src) ||
-            (1 == rank && 'H' == options.dst)) {
-        memset(sbuf, 'a', size);
-        memset(rbuf, 'b', size);
+    double t_total;
+
+    if ((options.src == 'M' && options.MMsrc == 'D') &&
+        (options.dst == 'M' && options.MMdst == 'D')) {
+        t_total = (t_end - t_start) - (2 * t_lo);
+    } else if ((options.src == 'M' && options.MMsrc == 'D') ||
+               (options.dst == 'M' && options.MMdst == 'D')) {
+        t_total = (t_end - t_start) - t_lo;
     } else {
-        set_device_memory(sbuf, 'a', size);
-        set_device_memory(rbuf, 'b', size);
-    }
-}
-
-int
-free_device_buffer (void * buf)
-{
-    switch (options.accel) {
-#ifdef _ENABLE_CUDA_
-        case cuda:
-            cudaFree(buf);
-            break;
-#endif
-#ifdef _ENABLE_OPENACC_
-        case openacc:
-            acc_free(buf);
-            break;
-#endif
-        default:
-            /* unknown device */
-            return 1;
+        t_total = (t_end - t_start);
     }
 
-    return 0;
+    return t_total;
 }
-
-int
-destroy_cuda_context (void)
-{
-#ifdef _ENABLE_CUDA_
-    CUresult curesult = CUDA_SUCCESS;
-    curesult = cuCtxDestroy(cuContext);   
-
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }  
-#endif
-    return 0;
-}
-
-void
-free_memory (void * sbuf, void * rbuf, int rank)
-{
-    switch (rank) {
-        case 0:
-            if ('D' == options.src) {
-                free_device_buffer(sbuf);
-                free_device_buffer(rbuf);
-            }
-            break;
-        case 1:
-            if ('D' == options.dst) {
-                free_device_buffer(sbuf);
-                free_device_buffer(rbuf);
-            }
-            break;
-    }
-}
-
-/* vi:set sw=4 sts=4 tw=80: */

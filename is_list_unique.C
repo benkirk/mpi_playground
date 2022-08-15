@@ -9,7 +9,6 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
-#include <rpc/rpc.h>
 #include <cstddef>
 #include <stdio.h>
 #include <numeric>

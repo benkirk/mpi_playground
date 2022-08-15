@@ -1,6 +1,6 @@
 #define BENCHMARK "OSU OpenSHMEM Collect Latency Test"
 /*
- * Copyright (C) 2002-2013 the Network-Based Computing Laboratory
+ * Copyright (C) 2002-2021 the Network-Based Computing Laboratory
  * (NBCL), The Ohio State University. 
  *
  * Contact: Dr. D. K. Panda (panda@cse.ohio-state.edu)
@@ -38,120 +38,166 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#include <stdio.h>
-#include <sys/time.h>
-#include <stdint.h>
 #include <shmem.h>
-#include "osu_common.h"
-#include "osu_coll.h"
-#include <stdlib.h>
+#include <osu_util_pgas.h>
 
-long pSyncBarrier[_SHMEM_BARRIER_SYNC_SIZE];
-long pSyncCollect[_SHMEM_COLLECT_SYNC_SIZE];
-long pSyncRed[_SHMEM_REDUCE_SYNC_SIZE];
+long pSyncCollect1[_SHMEM_COLLECT_SYNC_SIZE];
+long pSyncCollect2[_SHMEM_COLLECT_SYNC_SIZE];
+long pSyncRed1[_SHMEM_REDUCE_SYNC_SIZE];
+long pSyncRed2[_SHMEM_REDUCE_SYNC_SIZE];
 
-double pWrk[_SHMEM_REDUCE_SYNC_SIZE];
-
+double pWrk1[_SHMEM_REDUCE_MIN_WRKDATA_SIZE];
+double pWrk2[_SHMEM_REDUCE_MIN_WRKDATA_SIZE];
 
 int main(int argc, char *argv[])
 {
-  int i, numprocs, rank, size, align_size;
-  int skip;
-  static double latency = 0.0;
-  int64_t t_start = 0, t_stop = 0, timer=0;
-  static double avg_time = 0.0, max_time = 0.0, min_time = 0.0; 
-  char *recvbuff, *sendbuff, *r_buf1, *s_buf1;
-  int max_msg_size = 1048576, full = 0, t;
-  uint64_t requested_mem_limit = 0;
+    int i, numprocs, rank, iterations, po_ret;
+    unsigned long align_size = sysconf(_SC_PAGESIZE);
+    int skip;
+    int size = 0;
+    static double latency = 0.0;
+    double t_start = 0, t_stop = 0, timer=0;
+    static double avg_time = 0.0, max_time = 0.0, min_time = 0.0; 
+    char *recvbuff, *sendbuff;
+    int max_msg_size = 1048576, full = 0, t;
+    uint64_t requested_mem_limit = 0;
 
-  for ( t = 0; t < _SHMEM_REDUCE_SYNC_SIZE; t += 1) pSyncRed[t] = _SHMEM_SYNC_VALUE;
-  for ( t = 0; t < _SHMEM_BARRIER_SYNC_SIZE; t += 1) pSyncBarrier[t] = _SHMEM_SYNC_VALUE;
-  for ( t = 0; t < _SHMEM_COLLECT_SYNC_SIZE; t += 1) pSyncCollect[t] = _SHMEM_SYNC_VALUE;
+    options.bench = OSHM;
 
-  start_pes(0);
-  rank = _my_pe();
-  numprocs = _num_pes();
+    for ( t = 0; t < _SHMEM_REDUCE_SYNC_SIZE; t += 1) pSyncRed1[t] = _SHMEM_SYNC_VALUE;
+    for ( t = 0; t < _SHMEM_REDUCE_SYNC_SIZE; t += 1) pSyncRed2[t] = _SHMEM_SYNC_VALUE;
+    for ( t = 0; t < _SHMEM_COLLECT_SYNC_SIZE; t += 1) pSyncCollect1[t] = _SHMEM_SYNC_VALUE;
+    for ( t = 0; t < _SHMEM_COLLECT_SYNC_SIZE; t += 1) pSyncCollect2[t] = _SHMEM_SYNC_VALUE;
 
-  if (process_args(argc, argv, rank, &max_msg_size, &full)) {
-    return 0;
-  }
 
-  if(numprocs < 2) {
-    if(rank == 0) {
-      fprintf(stderr, "This test requires at least two processes\n");
+#ifdef OSHM_1_3     
+	shmem_init();
+    rank = shmem_my_pe();
+    numprocs = shmem_n_pes();
+#else
+	start_pes(0);
+    rank = _my_pe();
+    numprocs = _num_pes();
+#endif
+
+    po_ret = process_options(argc, argv);
+    full = options.show_full;
+    max_msg_size = options.max_message_size;
+
+    switch (po_ret) {
+        case PO_BAD_USAGE:
+            print_usage_pgas(rank, argv[0], size != 0);
+            exit(EXIT_FAILURE);
+        case PO_HELP_MESSAGE:
+            print_usage_pgas(rank, argv[0], size != 0);
+            exit(EXIT_SUCCESS);
+        case PO_VERSION_MESSAGE:
+            if (rank == 0) {
+                print_version_pgas(HEADER);
+            }
+            exit(EXIT_SUCCESS);
+        case PO_OKAY:
+            break;
     }
-    return -1;
-  }
 
-  requested_mem_limit = (uint64_t) (max_msg_size) * numprocs; 
-  if( requested_mem_limit > max_mem_limit) {
-    max_msg_size = max_mem_limit/numprocs;
-  } 
+    /*
+    if (process_args(argc, argv, rank, &max_msg_size, &full, HEADER)) {
+        return 0;
+    }*/
 
-  print_header(rank, full);
+    if(numprocs < 2) {
+        if(rank == 0) {
+            fprintf(stderr, "This test requires at least two processes\n");
+        }
+        return -1;
+    }
 
-  r_buf1 = s_buf1=NULL;
+    requested_mem_limit = (uint64_t) (max_msg_size) * numprocs; 
+    if( requested_mem_limit > options.max_mem_limit) {
+        max_msg_size = options.max_mem_limit/numprocs;
+    } 
 
-  r_buf1 = (char *) shmalloc(sizeof(char)*max_msg_size*numprocs + MAX_ALIGNMENT);
-  if(NULL == r_buf1) {
-    fprintf(stderr, "malloc failed.\n");
-    exit(1);
-  }
+    print_header_pgas(HEADER, rank, full);
+
+
+#ifdef OSHM_1_3 
+    recvbuff = (char *)shmem_align(align_size, sizeof(char) * max_msg_size
+            * numprocs);
+#else
+	recvbuff = (char *)shmemalign(align_size, sizeof(char) * max_msg_size
+            * numprocs);
+#endif
     
-  s_buf1 = (char *) shmalloc(sizeof(char)*max_msg_size + MAX_ALIGNMENT);
-  if(NULL == s_buf1) {
-    fprintf(stderr, "malloc failed.\n");
-    exit(1);
-  }
-
-  align_size = getpagesize();
-
-  recvbuff = (char *)(((unsigned long) r_buf1 + (align_size - 1)) / align_size
-		      * align_size);
-  sendbuff = (char *)(((unsigned long) s_buf1 + (align_size - 1)) / align_size
-		      * align_size);
-  memset(recvbuff, 1, max_msg_size*numprocs);
-  memset(sendbuff, 0, max_msg_size);
-
-  for(size=1; size <= max_msg_size/sizeof(uint32_t); size *= 2) {
-
-    if(size > LARGE_MESSAGE_SIZE) {
-      skip = SKIP_LARGE;
-      iterations = iterations_large;
-    } else {
-      skip = SKIP;
+    if (NULL == recvbuff) {
+        fprintf(stderr, "shmemalign failed.\n");
+        exit(1);
     }
 
-    shmem_barrier(0, 0, numprocs, pSyncBarrier);
+#ifdef OSHM_1_3 
+    sendbuff = (char *)shmem_align(align_size, sizeof(char) * max_msg_size);
+#else
+	sendbuff = (char *)shmemalign(align_size, sizeof(char) * max_msg_size);
+#endif
 
-    timer=0;
-    for(i=0; i < iterations + skip ; i++) {
-      t_start = TIME();
-      shmem_collect32(recvbuff, sendbuff, size, 0, 0, numprocs, pSyncCollect);
-      t_stop = TIME();
-
-      if(i >= skip) {
-	timer+= t_stop-t_start;
-      }
-      shmem_barrier(0, 0, numprocs, pSyncBarrier);
+	if (NULL == sendbuff) {
+        fprintf(stderr, "shmemalign failed.\n");
+        exit(1);
     }
 
-    shmem_barrier_all();        
+    memset(recvbuff, 1, max_msg_size*numprocs);
+    memset(sendbuff, 0, max_msg_size);
 
-    latency = (double)(timer * 1.0) / iterations;
+    for(size=1; size <= max_msg_size/sizeof(uint32_t); size *= 2) {
 
-    shmem_double_min_to_all(&min_time, &latency, 1, 0, 0, numprocs, pWrk, pSyncRed);
-    shmem_double_max_to_all(&max_time, &latency, 1, 0, 0, numprocs, pWrk, pSyncRed);
-    shmem_double_sum_to_all(&avg_time, &latency, 1, 0, 0, numprocs, pWrk, pSyncRed);
-    avg_time = avg_time/numprocs;
+        if(size > LARGE_MESSAGE_SIZE) {
+            skip = options.skip_large;
+            iterations = options.iterations_large;
+        } else {
+            skip = options.skip;
+            iterations = options.iterations;
+        }
 
-    print_data(rank, full, size*sizeof(uint32_t), avg_time, min_time, max_time, iterations);
-  }
+        shmem_barrier_all();
 
-  shmem_barrier_all();
-  shfree(s_buf1);
-  shfree(r_buf1);
+        timer=0;
+        for(i=0; i < iterations + skip ; i++) {
+            t_start = TIME();
+            if(i%2)
+                shmem_collect32(recvbuff, sendbuff, size, 0, 0, numprocs, pSyncCollect1);
+            else
+                shmem_collect32(recvbuff, sendbuff, size, 0, 0, numprocs, pSyncCollect2);
+            t_stop = TIME();
 
-  return EXIT_SUCCESS;
+            if(i >= skip) {
+                timer+= t_stop-t_start;
+            }
+            shmem_barrier_all();
+        }
+
+        shmem_barrier_all();        
+        latency = (double)(timer * 1.0) / iterations;
+
+        shmem_double_min_to_all(&min_time, &latency, 1, 0, 0, numprocs, pWrk1, pSyncRed1);
+        shmem_double_max_to_all(&max_time, &latency, 1, 0, 0, numprocs, pWrk2, pSyncRed2);
+        shmem_double_sum_to_all(&avg_time, &latency, 1, 0, 0, numprocs, pWrk1, pSyncRed1);
+        avg_time = avg_time/numprocs;
+
+        print_data_pgas(rank, full, size*sizeof(uint32_t), avg_time, min_time, max_time, iterations);
+    }
+
+    shmem_barrier_all();
+    
+	
+#ifdef OSHM_1_3     
+	shmem_free(recvbuff);
+    shmem_free(sendbuff);
+    shmem_finalize();
+#else 
+	shfree(recvbuff);
+    shfree(sendbuff);
+#endif
+
+    return EXIT_SUCCESS;
 }
+
 /* vi: set sw=4 sts=4 tw=80: */

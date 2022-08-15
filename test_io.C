@@ -7,7 +7,10 @@
 #include <iostream>
 #include <iostream>
 #include <vector>
-#include <rpc/rpc.h>
+#ifdef HAVE_XDR
+#  include <rpc/rpc.h>
+#  include <rpc/xdr.h>
+#endif
 #include <cstddef>
 #include <stdio.h>
 #include <numeric>
@@ -83,6 +86,7 @@ void init_vector (std::vector<T> &data)
 
 
 
+#ifdef HAVE_XDR
 void write_xdr (std::vector<double> &data)
 {
   XDR *xdrs = new XDR;
@@ -129,7 +133,7 @@ void read_xdr (std::vector<double> &data)
   fflush (fp);
   fclose (fp);
 }
-
+#endif
 
 
 void write_c (std::vector<double> &data)
@@ -230,12 +234,14 @@ int main (int argc, char **argv)
     // write tests
     if (opts.write)
       {
+#ifdef HAVE_XDR
         if (opts.do_xdr)
           {
             t.restart();
             write_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
             print_bw("--> Aggregate XDR  write bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
+#endif
         if (opts.do_c)
           {
             t.restart();
@@ -263,12 +269,14 @@ int main (int argc, char **argv)
     // read tests
     if (opts.read)
       {
+#ifdef HAVE_XDR
         if (opts.do_xdr)
           {
             t.restart();
             read_xdr(data); /**/ MPI_Barrier(MPI_COMM_WORLD);
             print_bw("--> Aggregate XDR  read  bw ", nprocs*data.size()*sizeof(double), t.elapsed());
           }
+#endif
         if (opts.do_c)
           {
             t.restart();
