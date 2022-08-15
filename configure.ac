@@ -146,7 +146,8 @@ AS_IF([test "x$enablexdr" = "xno" && test "x$xdrrequired" = "xyes"],
 
 
 ## Check for HDF5 support
-AX_LIB_HDF5()
+#AX_LIB_HDF5()
+CONFIGURE_HDF5
 
 # Configure subpackages
 AC_CONFIG_SUBDIRS([osu-benchmarks])

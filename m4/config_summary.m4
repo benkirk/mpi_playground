@@ -55,7 +55,7 @@ else
 fi
 
 ######################################################################################
-if test "x$with_hdf5" = "xyes"; then
+if test "x$enablehdf5" = "xyes"; then
   echo '   'HDF5:...................... : yes
   echo '      'version/type............ : $HDF5_VERSION $HDF5_TYPE
   echo '      'CFLAGS.................. : $HDF5_CFLAGS
