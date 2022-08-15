@@ -60,13 +60,13 @@ AC_ARG_ENABLE(mpl,
               enablempl=$enableval,
               enablempl=yes)
 
-if test "x$enable_mpl" = xyes; then
+if test "x$enable_mpl" = xno; then
+  have_mpl=no
+else
   AC_CHECK_FILE($top_srcdir/mpl/mpl/mpl.hpp, [have_mpl=yes], [have_mpl=no])
   if test "x$have_mpl" = xyes; then
      AC_DEFINE(HAVE_MPL,1,[Define if the C++ MPI MPL layer is available])
   fi
-else
-  have_mpl=no
 fi	
 AM_CONDITIONAL(ENABLE_MPL, test x$have_mpl = xyes)
 
