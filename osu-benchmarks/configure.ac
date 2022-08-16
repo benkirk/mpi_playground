@@ -122,7 +122,7 @@ AC_C_INLINE
 AC_CHECK_FUNCS([getpagesize gettimeofday memset sqrt])
 
 AC_COMPILE_IFELSE(
-            [AC_LANG_PROGRAM([[pthread.h]],
+            [AC_LANG_PROGRAM([[#include <pthread.h>]],
                              [[pthread_barrier_t sender_barrier;]])],
             [have_pthread_barrier_t=yes; AC_MSG_RESULT(found pthread_barrier_t)],
             [have_pthread_barrier_t=no; AC_MSG_RESULT(pthread_barrier_t not found)])
