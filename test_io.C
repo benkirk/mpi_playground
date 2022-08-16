@@ -217,7 +217,7 @@ int main (int argc, char **argv)
   process_command_line (argc, argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-  const bool print_aggregate = (rank == 0) && (nprocs > 1);
+  //const bool print_aggregate = (rank == 0) && (nprocs > 1);
 
   {
     char buf[256];

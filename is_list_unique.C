@@ -20,10 +20,10 @@ using namespace MPI_Playground;
 namespace
 {
   int rank, nprocs;
-  std::string io_basename = "test.";
-  const unsigned int bytes_per_MB = 1024 * 1024;
-  const unsigned int bytes_per_GB = bytes_per_MB * 1024;
-  const std::string DATASET_NAME("dset");
+  //std::string io_basename = "test.";
+  //const unsigned int bytes_per_MB = 1024 * 1024;
+  //const unsigned int bytes_per_GB = bytes_per_MB * 1024;
+  //const std::string DATASET_NAME("dset");
 }
 
 
