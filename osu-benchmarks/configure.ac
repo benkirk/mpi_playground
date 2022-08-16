@@ -121,6 +121,13 @@ AC_C_INLINE
 # Checks for library functions.
 AC_CHECK_FUNCS([getpagesize gettimeofday memset sqrt])
 
+AC_COMPILE_IFELSE(
+            [AC_LANG_PROGRAM([[pthread.h]],
+                             [[pthread_barrier_t sender_barrier;]])],
+            [have_pthread_barrier_t=yes; AC_MSG_RESULT(found pthread_barrier_t)],
+            [have_pthread_barrier_t=no; AC_MSG_RESULT(pthread_barrier_t not found)])
+AM_CONDITIONAL([PTHREAD_BARRIER], [test x"$have_pthread_barrier_t" = xyes])
+
 AS_IF([test "x$enable_embedded" = xyes], [
        AS_IF([test x"$enable_mpi3" = xyes], [mpi3_library=true])
        AS_IF([test x"$enable_mpi2" = xyes], [mpi2_library=true])
@@ -151,7 +158,7 @@ AS_IF([test "x$enable_ncclomb" = xyes], [
                       [AC_MSG_ERROR([cannot include nccl.h])])
        AC_SEARCH_LIBS([ncclGetUniqueId], [nccl], [],
                       [AC_MSG_ERROR([cannot link with -lnccl])])
-       AC_CHECK_FUNC([ncclSend], [nccl_pt2pt=true], 
+       AC_CHECK_FUNC([ncclSend], [nccl_pt2pt=true],
                      [AC_MSG_WARN([NCCL version >= 2.7 required for point-to-point support. Disabling building NCCL point-to-point benchmarks.])])
        AC_DEFINE([_ENABLE_NCCL_], [1], [Enable NCCL])
       ])
@@ -210,6 +217,6 @@ AC_DEFINE([FIELD_WIDTH], [18], [Width of field used to report numbers])
 AC_DEFINE([FLOAT_PRECISION], [2], [Precision of reported numbers])
 
 AC_CONFIG_FILES([Makefile mpi/Makefile mpi/pt2pt/Makefile mpi/startup/Makefile
-                 mpi/one-sided/Makefile mpi/collective/Makefile openshmem/Makefile 
+                 mpi/one-sided/Makefile mpi/collective/Makefile openshmem/Makefile
                  nccl/Makefile nccl/collective/Makefile nccl/pt2pt/Makefile])
 AC_OUTPUT
