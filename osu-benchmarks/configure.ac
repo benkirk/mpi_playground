@@ -211,5 +211,5 @@ AC_DEFINE([FLOAT_PRECISION], [2], [Precision of reported numbers])
 
 AC_CONFIG_FILES([Makefile mpi/Makefile mpi/pt2pt/Makefile mpi/startup/Makefile
                  mpi/one-sided/Makefile mpi/collective/Makefile openshmem/Makefile 
-                 upc/Makefile upcxx/Makefile nccl/Makefile nccl/collective/Makefile nccl/pt2pt/Makefile])
+                 nccl/Makefile nccl/collective/Makefile nccl/pt2pt/Makefile])
 AC_OUTPUT
