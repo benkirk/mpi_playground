@@ -9,7 +9,7 @@ if ENABLE_MPL
 endif
 
 AM_LDFLAGS = $(HDF5_LDFLAGS)
-LIBS       = $(FCLIBS) $(HDF5_LIBS)
+LIBS       = $(HDF5_LIBS) $(FCLIBS)
 
 
 bin_PROGRAMS =
