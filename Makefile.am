@@ -73,7 +73,8 @@ if ENABLE_MPL
   bin_PROGRAMS += parallel_sort_mpl
 
   parallel_sort_mpl_SOURCES = parallel_sort_mpl.C
-  parallel_sort_mpl_CPPFLAGS = -I$(top_srcdir)/mpl -DBUILD_APP
+  parallel_sort_mpl_CPPFLAGS = -I$(top_srcdir)/mpl -DBUILD_APP $(TBB_INCLUDE)
+  parallel_sort_mpl_LDADD = $(TBB_LIBRARY)
   parallel_sort_mpl_CXXFLAGS = -Wall
 endif
 

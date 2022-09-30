@@ -73,18 +73,12 @@ else
   echo '   'MPL:....................... : no
 fi
 
-# ######################################################################################
-# echo
-# echo Chemistry Configuration:
-
-# if test $enable_cantera	!= no; then
-#   echo '   'Link with Cantera.......... : yes
-#   echo '      'CANTERA_INCLUDE......... : $CANTERA_INCLUDE
-#   echo '      'CANTERA_LIBS............ : $CANTERA_LIBS
-# #  echo
-# else
-#   echo '   'Link with Cantera.......... : no
-# fi
+######################################################################################
+echo '   'tbb........................ : $enabletbb
+if test "x$enabletbb" = "xyes"; then
+  echo '      'TBB_INCLUDE............. : $TBB_INCLUDE
+  echo '      'TBB_LIBRARY............. : $TBB_LIBRARY
+fi
 
 echo
 echo '-------------------------------------------------------------------------------'

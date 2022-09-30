@@ -1,3 +1,4 @@
+#include <execution>
 #include <cstdlib>
 #include <random>
 #include <vector>
@@ -5,35 +6,36 @@
 #include <iostream>
 #include <mpl/mpl.hpp>
 
-
+auto policy = std::execution::par_unseq;
 
 static std::random_device rd;
 static std::mt19937_64 mt(rd());
 
 double get_random_double() {
-  std::uniform_real_distribution<double> dist(0, 1);
+  static std::uniform_real_distribution<double> dist(0, 1);
   return dist(mt);
 }
 
 long get_random_long() {
-  std::uniform_int_distribution<long> dist;
+  static std::uniform_int_distribution<long> dist;
   return dist(mt);
 }
 
 void fill_random(std::vector<double> &v) {
-  std::generate(std::begin(v), std::end(v), get_random_double);
+  std::generate(policy, std::begin(v), std::end(v), get_random_double);
 }
 
 void fill_random(std::vector<long> &v) {
-  std::generate(std::begin(v), std::end(v), get_random_long);
+  std::generate(policy, std::begin(v), std::end(v), get_random_long);
 }
 
 template <typename T>
 void make_unique(std::vector<T> &v) {
-  std::sort(begin(v), end(v));
-  auto last = std::unique(begin(v), end(v));
+  std::sort(policy, begin(v), end(v));
+  auto last = std::unique(policy, begin(v), end(v));
   v.erase(last, end(v));
-  std::random_shuffle(begin(v), end(v));
+  static std::mt19937 g(rd());
+  std::shuffle(begin(v), end(v), g);
 }
 
 // parallel sort algorithm for distributed memory computers
@@ -61,7 +63,7 @@ void parallel_sort(std::vector<T> &v)
   std::sample(begin(v), end(v), std::back_inserter(local_pivots), size - 1, mt);
   comm_world.allgather(local_pivots.data(), mpl::vector_layout<T>(size - 1), pivots.data(),
                        mpl::vector_layout<T>(size - 1));
-  std::sort(begin(pivots), end(pivots));
+  std::sort(policy, begin(pivots), end(pivots));
 
   local_pivots.clear();
   for (std::size_t i{1}; i < static_cast<std::size_t>(size); ++i)
@@ -95,16 +97,9 @@ void parallel_sort(std::vector<T> &v)
   std::vector<T> v_2(recv_pos);
   comm_world.alltoallv(v.data(), send_layouts, v_2.data(), recv_layouts);
 
-  std::sort(begin(v_2), end(v_2));
+  std::sort(policy, begin(v_2), end(v_2));
 
   std::swap(v, v_2);
-}
-
-
-
-int run_parallel_sort_mpl()
-{
-  return 0;
 }
 
 
@@ -117,7 +112,7 @@ int main (int argc, char **argv)
   const int rank{comm_world.rank()};
 
   //const std::size_t N{100000000 / static_cast<std::size_t>(size)};
-  const std::size_t N{5000 / static_cast<std::size_t>(size)};
+  const std::size_t N{50000 / static_cast<std::size_t>(size)};
   std::vector<long> v(N);
   fill_random(v);
   make_unique(v);

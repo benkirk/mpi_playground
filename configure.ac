@@ -30,6 +30,7 @@ AC_FC_WRAPPERS
 AM_PROG_CC_C_O # mpl_examples/Makefile.am:74: warning: compiling ... in subdir requires 'AM_PROG_CC_C_O'
 AM_PATH_PYTHON
 AC_ARG_VAR(PYTHONPATH, compile-time PYTHONPATH (e.g. for mpi4py))
+AC_LANG([C++])
 
 #----------------
 # Libmesh Config
@@ -67,12 +68,15 @@ else
   if test "x$have_mpl" = xyes; then
      AC_DEFINE(HAVE_MPL,1,[Define if the C++ MPI MPL layer is available])
   fi
-fi	
+fi
 AM_CONDITIONAL(ENABLE_MPL, test x$have_mpl = xyes)
 
 # Checks for MPI features
 AC_CHECK_FUNC([MPI_Win_create], [mpi_win_create=true])
 AC_CHECK_FUNC([MPI_Ibarrier],   [mpi_ibarrier=true], [mpi_ibarrier=false])
+
+CONFIGURE_TBB
+AM_CONDITIONAL(HAVE_TBB, test x$enabletbb = xyes)
 
 # Checks for header files.
 
