@@ -14,6 +14,14 @@ your library supports MPI-1, MPI-2, MPI-3, OpenSHMEM, and UPC++ to compile the
 corresponding benchmarks.  See http://mvapich.cse.ohio-state.edu/benchmarks/ to
 download the latest version of this package.
 
+The python directory contains Python versions of the benchmarks. These do not
+need to be compiled. See the README file located in the python directory
+for more details.
+
+The Java directory contains Java versions of the benchmarks. These are compiled
+separately via the javac compiler. See the README file located in the java
+directory for more details.
+
 OMB also contains ROCm, CUDA and OpenACC extensions to the benchmarks. CUDA
 extensions can be enabled by configuring OMB with --enable-cuda option as shown
 below.
@@ -1016,3 +1024,105 @@ It can be used as follows:
     mpirun_rsh -np 2 -hostfile hostfile MV2_USE_ROCM=1 get_local_rank \
         ./osu_latency D D
 
+Support for Derived Data Types
+------------------------------
+The following benchmarks have been extended to support MPI derived data types in
+addition to the communication performance.
+
+    osu_bibw           - Bidirectional Bandwidth Test
+    osu_bw             - Bandwidth Test
+    osu_latency        - Latency Test
+    osu_mbw_mr         - Multiple Bandwidth / Message Rate Test
+    osu_multi_lat      - Multi-pair Latency Test
+    osu_latency_mt     - Multi-threaded Latency Test
+    osu_latency_mp     - Multi-process Latency Test
+    osu_allgather      - MPI_Allgather Latency Test(*)
+    osu_allgatherv     - MPI_Allgatherv Latency Test
+    osu_alltoall       - MPI_Alltoall Latency Test
+    osu_alltoallv      - MPI_Alltoallv Latency Test
+    osu_bcast          - MPI_Bcast Latency Test
+    osu_gather         - MPI_Gather Latency Test(*)
+    osu_gatherv        - MPI_Gatherv Latency Test
+    osu_scatter        - MPI_Scatter Latency Test(*)
+    osu_scatterv       - MPI_Scatterv Latency Test
+    osu_iallgather     - MPI_Iallgather Latency Test
+    osu_iallgatherv    - MPI_Iallgatherv Latency Test
+    osu_ialltoall      - MPI_Ialltoall Latency Test
+    osu_ialltoallv     - MPI_Ialltoallv Latency Test
+    osu_ialltoallw     - MPI_Ialltoallw Latency Test
+    osu_ibcast         - MPI_Ibcast Latency Test
+    osu_igather        - MPI_Igather Latency Test
+    osu_igatherv       - MPI_Igatherv Latency Test
+    osu_iscatter       - MPI_Iscatter Latency Test
+    osu_iscatterv      - MPI_Iscatterv Latency Test
+
+    * Additionally, the benchmarks offer following options:
+    * "-D" option can be used to enable DDT support
+    *      "-D cont" for contiguous DDT support
+    *      "-D vect:[stride]:[block_length]" for vector DDT support
+    *           Example: -D vect:8:4
+    *      "-D indx:[ddt file path]" for index DDT support
+    *           Example: -D indx:ddt_sample.txt
+    
+Support for Graphs
+------------------
+The following benchmarks have been extended to support graphing of metrics in
+addition to the communication performance.
+
+This feature can be used if 'gnuplot' in present in the PATH or by passing gnuplot
+installation path during configure time using
+--with-gnuplot=/path/to/gnuplot/installation/bin.
+
+For graph output in pdf format, in addition to gnuplot, 'convert' must be present
+in the PATH or must be passed during configure time using
+--with-convert=/path/to/ImageMagick/installation/bin
+
+    osu_bibw           - Bidirectional Bandwidth Test
+    osu_bw             - Bandwidth Test
+    osu_latency        - Latency Test
+    osu_mbw_mr         - Multiple Bandwidth / Message Rate Test
+    osu_multi_lat      - Multi-pair Latency Test
+    osu_latency_mt     - Multi-threaded Latency Test
+    osu_latency_mp     - Multi-process Latency Test
+    osu_allgather      - MPI_Allgather Latency Test
+    osu_allgatherv     - MPI_Allgatherv Latency Test
+    osu_alltoall       - MPI_Alltoall Latency Test
+    osu_alltoallv      - MPI_Alltoallv Latency Test
+    osu_alltoallw      - MPI_Alltoallw Latency Test
+    osu_allreduce      - MPI_Allreduce Latency Test
+    osu_bcast          - MPI_Bcast Latency Test
+    osu_gather         - MPI_Gather Latency Test
+    osu_gatherv        - MPI_Gatherv Latency Test
+    osu_barrier        - MPI_Barrier Latency Test
+    osu_reduce         - MPI_Reduce Latency Test
+    osu_reduce_scatter - MPI_Reduce_scatter Latency Test
+    osu_scatter        - MPI_Scatter Latency Test
+    osu_scatterv       - MPI_Scatterv Latency Test
+    osu_iallgather     - MPI_Iallgather Latency Test
+    osu_iallgatherv    - MPI_Iallgatherv Latency Test
+    osu_iallreduce     - MPI_Iallreduce Latency Test
+    osu_ialltoall      - MPI_Ialltoall Latency Test
+    osu_ialltoallv     - MPI_Ialltoallv Latency Test
+    osu_ialltoallw     - MPI_Ialltoallw Latency Test
+    osu_ibarrier       - MPI_Ibarrier Latency Test
+    osu_ibcast         - MPI_Ibcast Latency Test
+    osu_igather        - MPI_Igather Latency Test
+    osu_igatherv       - MPI_Igatherv Latency Test
+    osu_ireduce        - MPI_Ireduce Latency Test
+    osu_iscatter       - MPI_Iscatter Latency Test
+    osu_iscatterv      - MPI_Iscatterv Latency Test
+    osu_put_latency    - Latency Test for Put
+    osu_get_latency    - Latency Test for Get
+    osu_put_bw         - Bandwidth Test for Put
+    osu_get_bw         - Bandwidth Test for Get
+    osu_put_bibw       - Bidirectional Bandwidth Test for Put
+    osu_acc_latency    - Latency Test for Accumulate
+    osu_cas_latency    - Latency Test for Compare and Swap
+    osu_fop_latency    - Latency Test for Fetch and Op
+    osu_get_acc_latency- Latency Test for Get_accumulate with Active/Passive
+
+    * Additionally, the benchmarks offer following options:
+    * "-G" option can be used to output result in graphs
+    *      "-G tty" for graph output in terminal using ASCII characters
+    *      "-G png" for graph output in png format
+    *      "-G pdf" for graph output in pdf format

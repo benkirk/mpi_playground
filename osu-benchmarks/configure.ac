@@ -2,13 +2,21 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.59])
-AC_INIT([OSU-Micro-Benchmarks], [5.9], [mvapich-discuss@cse.ohio-state.edu])
-AC_CONFIG_SRCDIR([mpi/pt2pt/osu_latency.c])
+AC_INIT([OSU-Micro-Benchmarks], [6.2], [mvapich-discuss@cse.ohio-state.edu])
+AC_CONFIG_SRCDIR([c/mpi/pt2pt/osu_latency.c])
 
 AM_INIT_AUTOMAKE([foreign])
 # use silent rules - automake 1.11
 AM_SILENT_RULES(yes)
 LT_INIT
+
+dnl Disable C/C++ verions
+AC_ARG_ENABLE([c],
+              [AS_HELP_STRING([--disable-c],
+                              [Disable C benchmarks (default is no).])
+              ],
+              [enable_c=no],
+              [])
 
 dnl
 dnl Add NVCCFLAGS for additional flags
@@ -99,7 +107,28 @@ AC_ARG_WITH([rocm],
                      [CPPFLAGS="-I$with_rocm/include $CPPFLAGS"
                       LDFLAGS="-L$with_rocm/lib64 -Wl,-rpath=$with_rocm/lib64 -L$with_rocm/lib -Wl,-rpath=$with_rocm/lib -lamdhip64 $LDFLAGS"])
             ])
-
+AC_ARG_WITH([gnuplot],
+            [AS_HELP_STRING([--with-gnuplot=@<:@gnuplot installation path@:>@],
+                            [Provide path to gnuplot installation])
+            ],
+            [AS_IF([test -d $withval],
+             [AC_CHECK_PROG(GNUPLOT_CHECK_PATH,gnuplot,yes,no,$with_gnuplot)],
+             [AC_MSG_ERROR([Unable to find gnuplot build path. Please check the path.])])])
+AS_IF([test x$GNUPLOT_CHECK_PATH = x"yes"],
+      [AC_DEFINE_UNQUOTED([_GNUPLOT_BUILD_PATH_],["$with_gnuplot/gnuplot"])],[])
+AS_IF([test x$GNUPLOT_CHECK_PATH = x"no"],
+      [AC_MSG_ERROR([gnuplot executable not found in the given path.])])
+AC_ARG_WITH([convert],
+            [AS_HELP_STRING([--with-convert=@<:@ImageMagick installation path@:>@],
+                            [Provide path to ImageMagick installation])
+            ],
+            [AS_IF([test -d $withval],
+             [AC_CHECK_PROG(CONVERT_CHECK_PATH,convert,yes,no,$with_convert)],
+             [AC_MSG_ERROR([Unable to find ImageMagick build path. Please check the path.])])])
+AS_IF([test x$CONVERT_CHECK_PATH = x"yes"],
+      [AC_DEFINE_UNQUOTED([_CONVERT_BUILD_PATH_],["$with_convert/convert"])])
+AS_IF([test x$CONVERT_CHECK_PATH = x"no"],
+      [AC_MSG_ERROR([convert executable not found in the given path.])])
 # Checks for programs.
 AC_PROG_CC([mpicc oshcc upcc upc++])
 
@@ -113,20 +142,13 @@ AC_SEARCH_LIBS([pthread_join], [pthread])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 
 # Checks for header files.
-AC_CHECK_HEADERS([stdlib.h string.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([stdlib.h string.h sys/time.h unistd.h math.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
 
 # Checks for library functions.
 AC_CHECK_FUNCS([getpagesize gettimeofday memset sqrt])
-
-AC_COMPILE_IFELSE(
-            [AC_LANG_PROGRAM([[#include <pthread.h>]],
-                             [[pthread_barrier_t sender_barrier;]])],
-            [have_pthread_barrier_t=yes; AC_MSG_RESULT(found pthread_barrier_t)],
-            [have_pthread_barrier_t=no; AC_MSG_RESULT(pthread_barrier_t not found)])
-AM_CONDITIONAL([PTHREAD_BARRIER], [test x"$have_pthread_barrier_t" = xyes])
 
 AS_IF([test "x$enable_embedded" = xyes], [
        AS_IF([test x"$enable_mpi3" = xyes], [mpi3_library=true])
@@ -201,6 +223,7 @@ AS_IF([test "x$oshm_13_library" = xtrue], [
        ])
 AM_CONDITIONAL([MPI2_LIBRARY], [test x$mpi2_library = xtrue])
 AM_CONDITIONAL([MPI3_LIBRARY], [test x$mpi3_library = xtrue])
+AM_CONDITIONAL([C], [test x$enable_c != xno])
 AM_CONDITIONAL([CUDA], [test x$build_cuda = xyes])
 AM_CONDITIONAL([NCCL], [test x$enable_ncclomb = xyes])
 AM_CONDITIONAL([NCCL_PT2PT], [test x$nccl_pt2pt = xtrue])
@@ -216,7 +239,11 @@ AM_CONDITIONAL([BUILD_USE_PGI], [`$CXX -V 2>&1 | grep pgc++ > /dev/null 2>&1`])
 AC_DEFINE([FIELD_WIDTH], [18], [Width of field used to report numbers])
 AC_DEFINE([FLOAT_PRECISION], [2], [Precision of reported numbers])
 
-AC_CONFIG_FILES([Makefile mpi/Makefile mpi/pt2pt/Makefile mpi/startup/Makefile
-                 mpi/one-sided/Makefile mpi/collective/Makefile openshmem/Makefile
-                 nccl/Makefile nccl/collective/Makefile nccl/pt2pt/Makefile])
+AC_CONFIG_FILES([Makefile c/Makefile c/mpi/Makefile c/mpi/pt2pt/Makefile
+                 c/mpi/startup/Makefile c/mpi/one-sided/Makefile
+                 c/mpi/collective/Makefile c/openshmem/Makefile
+                 c/upc/Makefile c/upcxx/Makefile c/nccl/Makefile
+                 c/nccl/collective/Makefile c/nccl/pt2pt/Makefile
+               ])
+
 AC_OUTPUT

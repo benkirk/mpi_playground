@@ -1,3 +1,133 @@
+OSU Micro Benchmarks v6.2 (10/25/2022)
+
+* New Features & Enhancements
+    - Add graphing support for mpi pt2pt benchmarks
+        * Enabled with the `-G` option
+        * Supports tty, png, and pdf graph ouputs.
+        * Benchmarks supported
+            * osu_bibw, osu_bw, osu_mbw_mr, osu_latency, osu_multi_lat,
+            * osu_latency_mp, osu_latency_mt
+    - Add graphing support for mpi blocking and non-blocking collective
+      benchmarks
+        * Enabled with the `-G` option
+        * Supports tty, png, and pdf graph ouputs.
+        * Blocking benchmarks supported
+            * osu_allgather, osu_allgatherv, osu_alltoall, osu_allreduce,
+            * osu_alltoallv, osu_alltoallw, osu_bcast, osu_barrier, osu_gather,
+            * osu_gatherv, osu_reduce, osu_reduce_scatter, osu_scatter,
+            * osu_scatterv
+        * Non-Blocking benchmarks supported
+            * osu_iallgather, osu_iallgatherv, osu_iallreduce, osu_ialltoall,
+            * osu_ialltoallv, osu_ialltoallw, osu_ibcast, osu_ibarrier,
+            * osu_igather, osu_igatherv, osu_ireduce, osu_iscatter,
+            * osu_iscatterv
+    - Add graphing support for mpi one-sided benchmarks
+        * Enabled with the `-G` option
+        * Supports tty, png, and pdf graph ouputs.
+        * Benchmarks supported
+            * osu_acc_latency, osu_cas_latency, osu_fop_latency,
+            * osu_get_acc_latency, osu_get_bw, osu_get_latency, osu_put_bibw,
+            * osu_put_bw, osu_put_latency
+    - Add support for benchmarking blocking Alltoallw.
+        * osu_alltoallw
+
+* Bug Fixes (since v6.1)
+    - Fixed inconsistency in max_message_size between some blocking and
+      non-blocking collectives.
+        * Thanks to Krishna Kandalla @HPE for the report.
+    - Correct skip value for small message sizes in osu_ialltoallw benchmark
+
+OSU Micro Benchmarks v6.1 (09/16/2022)
+
+* New Features & Enhancements
+    - Add support for derived data types in mpi pt2pt benchmarks
+        * Enabled with the `-D` option
+        * Supports contiguous, vector, and indexed data types
+        * Benchmarks supported
+            * osu_bibw
+            * osu_bw
+            * osu_mbw_mr
+            * osu_latency
+            * osu_multi_lat
+    - Add support for derived data types in mpi blocking and non-blocking
+      collective benchmarks
+        * Enabled with the `-D` option
+        * Supports contiguous, vector, and indexed data types
+        * Blocking benchmarks supported
+            * osu_allgather
+            * osu_allgatherv
+            * osu_alltoall
+            * osu_alltoallv
+            * osu_bcast
+            * osu_gather
+            * osu_gatherv
+            * osu_scatter
+            * osu_scatterv
+        * Non-Blocking benchmarks supported
+            * osu_iallgather
+            * osu_iallgatherv
+            * osu_ialltoall
+            * osu_ialltoallv
+            * osu_ialltoallw
+            * osu_ibcast
+            * osu_igather
+            * osu_igatherv
+            * osu_iscatter
+            * osu_iscatterv
+
+* Bug Fixes (since v6.0)
+    - Add support for data validation for ROCm benchmarks
+        * Thanks to Amir Shehata @ORNL for the report and initial patch
+    - Correct the version number in the released version
+        * Thanks to Adam Goldman @Intel for the report
+
+OSU Micro Benchmarks v6.0 (08/16/2022)
+
+* New Features & Enhancements
+    - Add support for Java pt2pt benchmarks
+        * OSULatency - Latency Test
+        * OSUBandwidth - Bandwidth Test
+          - OSUBandwidthOMPI - Bandwidth Test for Open MPI Java Bindings
+        * OSUBiBandwidth - Bidirectional Bandwidth Test
+          - OSUBiBandwidthOMPI - BiBandwidth Test for Open MPI Java Bindings
+    - Add support for Java collective benchmarks
+        * OSUAllgather - MPI_Allgather Latency Test
+        * OSUAllgatherv - MPI_Allgatherv Latency Test
+        * OSUAllReduce - MPI_Allreduce Latency Test
+        * OSUAlltoall - MPI_Alltoall Latency Test
+        * OSUAlltoallv - MPI_Alltoallv Latency Test
+        * OSUBarrier - MPI_Barrier Latency Test
+        * OSUBcast - MPI_Bcast Latency Test
+        * OSUGather - MPI_Gather Latency Test
+        * OSUGatherv - MPI_Gatherv Latency Test
+        * OSUReduce - MPI_Reduce Latency Test
+        * OSUReduceScatter - MPI_Reduce_scatter Latency Test
+        * OSUScatter - MPI_Scatter Latency Test
+        * OSUScatterv - MPI_Scatterv Latency Test
+    - Add support for Python pt2pt benchmarks
+        * osu_latency - Latency Test
+        * osu_bw - Bandwidth Test
+        * osu_bibw - Bidirectional Bandwidth Test
+        * osu_multi_lat - Multi-pair Latency Test
+    - Add support for Python collective benchmarks
+        * osu_allgather - MPI_Allgather Latency Test
+        * osu_allgatherv - MPI_Allgatherv Latency Test
+        * osu_allreduce - MPI_Allreduce Latency Test
+        * osu_alltoall - MPI_Alltoall Latency Test
+        * osu_alltoallv - MPI_Alltoallv Latency Test
+        * osu_barrier - MPI_Barrier Latency Test
+        * osu_bcast - MPI_Bcast Latency Test
+        * osu_gather - MPI_Gather Latency Test
+        * osu_gatherv - MPI_Gatherv Latency Test
+        * osu_reduce - MPI_Reduce Latency Test
+        * osu_reduce_scatter - MPI_Reduce_scatter Latency Test
+        * osu_scatter - MPI_Scatter Latency Test
+        * osu_scatterv - MPI_Scatterv Latency Test
+ 
+* Bug Fixes (since v5.9)
+    - Fix bug in data validation support for CUDA managed memory benchmarks
+        - Thanks to Chris Chambreau @LLNL for the report
+
 OSU Micro Benchmarks v5.9 (03/02/2022)
 
 * New Features & Enhancements
