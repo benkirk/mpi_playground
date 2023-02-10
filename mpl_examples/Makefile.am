@@ -94,6 +94,7 @@ includedir=$(prefix)/include/mpl
 mpl_headers = \
    $(top_srcdir)/mpl/mpl/cartesian_communicator.hpp \
    $(top_srcdir)/mpl/mpl/comm_group.hpp \
+   $(top_srcdir)/mpl/mpl/command_line.hpp \
    $(top_srcdir)/mpl/mpl/datatype.hpp \
    $(top_srcdir)/mpl/mpl/displacements.hpp \
    $(top_srcdir)/mpl/mpl/distributed_graph_communicator.hpp \
@@ -102,6 +103,7 @@ mpl_headers = \
    $(top_srcdir)/mpl/mpl/error.hpp \
    $(top_srcdir)/mpl/mpl/flat_memory.hpp \
    $(top_srcdir)/mpl/mpl/graph_communicator.hpp \
+   $(top_srcdir)/mpl/mpl/info.hpp \
    $(top_srcdir)/mpl/mpl/layout.hpp \
    $(top_srcdir)/mpl/mpl/message.hpp \
    $(top_srcdir)/mpl/mpl/mpl.hpp \

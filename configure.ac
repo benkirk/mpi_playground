@@ -1,8 +1,7 @@
-#                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([mpi_play],[0.0.1],[benjamin.kirk@nasa.gov])
+AC_INIT([mpi_play],[1.0.0],[benkirk@ucar.edu])
 AC_MSG_RESULT(---------------------------------------------)
 AC_MSG_RESULT(-------- Configuring MPI Playground ---------)
 AC_MSG_RESULT(---------------------------------------------)
