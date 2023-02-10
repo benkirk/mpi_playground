@@ -3,19 +3,28 @@
 
 AC_PREREQ([2.59])
 AC_INIT([OSU-Micro-Benchmarks], [6.2], [mvapich-discuss@cse.ohio-state.edu])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([c/mpi/pt2pt/osu_latency.c])
+
+# Checks for programs.
+AC_PROG_CC([mpicc])
+
+# Checks for mpicxx used for compiling kernel.cu in nbc benchmarks and/or the
+# upc++ compiler for upcxx benchmarks
+AC_PROG_CXX([mpicxx mpic++ mpiCC])
 
 AM_INIT_AUTOMAKE([foreign])
 # use silent rules - automake 1.11
 AM_SILENT_RULES(yes)
 LT_INIT
 
-dnl Disable C/C++ verions
+dnl Enable/Disable C/C++ verions
 AC_ARG_ENABLE([c],
               [AS_HELP_STRING([--disable-c],
                               [Disable C benchmarks (default is no).])
               ],
-              [enable_c=no],
+              [enable_c=yes],
               [])
 
 dnl
@@ -129,12 +138,6 @@ AS_IF([test x$CONVERT_CHECK_PATH = x"yes"],
       [AC_DEFINE_UNQUOTED([_CONVERT_BUILD_PATH_],["$with_convert/convert"])])
 AS_IF([test x$CONVERT_CHECK_PATH = x"no"],
       [AC_MSG_ERROR([convert executable not found in the given path.])])
-# Checks for programs.
-AC_PROG_CC([mpicc oshcc upcc upc++])
-
-# Checks for mpicxx used for compiling kernel.cu in nbc benchmarks and/or the
-# upc++ compiler for upcxx benchmarks
-AC_PROG_CXX([mpicxx upc++])
 
 # Checks for libraries.
 AC_SEARCH_LIBS([sqrt], [m])
@@ -149,6 +152,14 @@ AC_C_INLINE
 
 # Checks for library functions.
 AC_CHECK_FUNCS([getpagesize gettimeofday memset sqrt])
+
+AC_COMPILE_IFELSE(
+            [AC_LANG_PROGRAM([[pthread.h]],
+                             [[pthread_barrier_t sender_barrier;]])],
+            [have_pthread_barrier_t=yes; AC_MSG_RESULT(found pthread_barrier_t)],
+            [have_pthread_barrier_t=no; AC_MSG_RESULT(pthread_barrier_t not found)])
+AM_CONDITIONAL([PTHREAD_BARRIER], [test x"$have_pthread_barrier_t" = xyes])
+
 
 AS_IF([test "x$enable_embedded" = xyes], [
        AS_IF([test x"$enable_mpi3" = xyes], [mpi3_library=true])
