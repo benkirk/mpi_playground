@@ -8,6 +8,10 @@ if ENABLE_MPL
   SUBDIRS += mpl_examples
 endif
 
+if ENABLE_IMB
+  SUBDIRS += imb
+endif
+
 AM_LDFLAGS = $(HDF5_LDFLAGS)
 LIBS       = $(HDF5_LIBS) $(FCLIBS)
 

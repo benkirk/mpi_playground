@@ -9,11 +9,15 @@ AC_MSG_RESULT(---------------------------------------------)
 top_srcdir=`dirname $0`
 #srcdir=`dirname $0`
 AC_CHECK_FILE(ibarrier.C, [vpath_build=no], [vpath_build=yes])
+AS_IF([test $vpath_build = yes],
+      [AC_MSG_RESULT(<<< Configuring build directory for VPATH build >>>)])
+AM_CONDITIONAL(VPATH_BUILD, test x$vpath_build = xyes)
+
 AC_CONFIG_HEADERS([mpi_play_config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([dist-bzip2 tar-pax subdir-objects color-tests 1.11])
+AM_INIT_AUTOMAKE([dist-bzip2 tar-pax subdir-objects color-tests 1.16])
 # use silent rules - automake 1.11
 AM_SILENT_RULES(yes)
 
@@ -23,7 +27,9 @@ AC_PROG_CC([mpicc])
 AC_PROG_FC([mpif90])
 AC_PROG_F77([mpif90])
 AC_CHECK_PROGS([MPIEXEC], [mpiexec mpiexec_mpt mpirun], [mpiexec])
-
+AC_PROG_LN_S
+AC_PROG_MKDIR_P
+AC_PATH_PROG(RSYNC, rsync, [disabled])
 AC_FC_LIBRARY_LDFLAGS
 AC_FC_WRAPPERS
 AM_PROG_CC_C_O # mpl_examples/Makefile.am:74: warning: compiling ... in subdir requires 'AM_PROG_CC_C_O'
@@ -57,8 +63,8 @@ AM_CONDITIONAL(ENABLE_LIBMESH, test x$have_libmesh = xyes)
 AC_ARG_ENABLE(mpl,
               AS_HELP_STRING([--disable-mpl],
                              [build without MPL]),
-              enablempl=$enableval,
-              enablempl=yes)
+              enable_mpl=$enableval,
+              enable_mpl=yes)
 
 if test "x$enable_mpl" = xno; then
   have_mpl=no
@@ -66,9 +72,27 @@ else
   AC_CHECK_FILE($top_srcdir/mpl/mpl/mpl.hpp, [have_mpl=yes], [have_mpl=no])
   if test "x$have_mpl" = xyes; then
      AC_DEFINE(HAVE_MPL,1,[Define if the C++ MPI MPL layer is available])
+     AC_MSG_RESULT([<<< Enabling C++ MPI MPL layer >>>])
   fi
 fi
 AM_CONDITIONAL(ENABLE_MPL, test x$have_mpl = xyes)
+
+AC_ARG_ENABLE(imb,
+              AS_HELP_STRING([--enable-imb],
+                             [build with IMB]),
+              enable_imb=$enableval,
+              enable_imb=no)
+
+if test "x$enable_imb" = xno; then
+  have_imb=no
+else
+  AC_CHECK_FILE($top_srcdir/imb/imb/src_c/IMB_bcast.c, [have_imb=yes], [have_imb=no])
+  if test "x$have_imb" = xyes; then
+     AC_DEFINE(HAVE_IMB,1,[Define if Intel MPI Benchmarks are available])
+     AC_MSG_RESULT([<<< Enabling Intel MPI Benchmarks >>>)])
+  fi
+fi
+AM_CONDITIONAL(ENABLE_IMB, test x$have_imb = xyes)
 
 # Checks for MPI features
 AC_CHECK_FUNC([MPI_Win_create], [mpi_win_create=true])
@@ -159,6 +183,7 @@ AC_CONFIG_SUBDIRS([osu-benchmarks])
 AC_CONFIG_FILES([Makefile
                  libmesh_apps/Makefile
                  mpl_examples/Makefile
+                 imb/Makefile
                  mpi4py/Makefile
                  mpi4py/py_wrapper
                  ])
