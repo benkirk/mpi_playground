@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS =
 
 if CUDA
     dist_pkglibexec_SCRIPTS = get_local_rank
@@ -16,15 +16,14 @@ if OSHM
     SUBDIRS += openshmem
 endif
 
-if UPC
-    SUBDIRS += upc
-endif
-
-if UPCXX
-    SUBDIRS += upcxx
-endif
+# if UPC
+#     SUBDIRS += upc
+# endif
+#
+# if UPCXX
+#     SUBDIRS += upcxx
+# endif
 
 if NCCL
     SUBDIRS += nccl
 endif
-
