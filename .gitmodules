@@ -7,3 +7,6 @@
 [submodule "mpl"]
 	path = mpl
 	url = https://github.com/rabauke/mpl.git
+[submodule "imb/imb"]
+	path = imb/imb
+	url = https://github.com/intel/mpi-benchmarks.git
