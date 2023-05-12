@@ -18,7 +18,7 @@ LIBS       = $(HDF5_LIBS) $(FCLIBS)
 
 bin_PROGRAMS =
 
-bin_PROGRAMS     += ibarrier one_sided nonblocking_consensus alltoall abort test_io is_list_unique
+bin_PROGRAMS     += ibarrier one_sided nonblocking_consensus alltoall abort round_robin_pt2pt test_io is_list_unique
 
 ibarrier_SOURCES  = ibarrier.C
 one_sided_SOURCES = one_sided.C
@@ -26,6 +26,7 @@ abort_SOURCES     = abort.C
 
 nonblocking_consensus_SOURCES = nonblocking_consensus.C random_in_range.C random_in_range.h process_cmdline.C process_cmdline.h
 alltoall_SOURCES              = alltoall.C random_in_range.C random_in_range.h process_cmdline.C process_cmdline.h
+round_robin_pt2pt_SOURCES     = round_robin_pt2pt.C
 
 
 highfive_sources = \
