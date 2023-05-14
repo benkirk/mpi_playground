@@ -14,7 +14,7 @@ int main (int argc, char **argv)
   int nranks, myrank, mylocalrank;
 
   const std::size_t
-    bufcnt =  1000*1000*8,
+    bufcnt =  1000*1000,
     bufsize = bufcnt*(sizeof(unsigned int)),
     nrep = 10;
 
@@ -89,6 +89,10 @@ int main (int argc, char **argv)
 
       double total_elapsed=0.;
 
+      // start the steps synchronized.
+      // no special rank-0 stuff during timing loop.
+      MPI_Barrier(MPI_COMM_WORLD);
+
       for (std::size_t step=0; step<nrep; ++step)
         {
           int idx=-1;
@@ -139,8 +143,7 @@ int main (int argc, char **argv)
                   << ", " << std::setw(5) << procup
                   << ", " << std::setw(5) << procdn
                   << " / " << std::setw(12) << total_elapsed << "\t (sec)"
-                  << " / " << std::setw(12) << static_cast<double>(4*bufsize) / total_elapsed << " (bytes/sec)"
-                  << std::endl;
+                  << " / " << std::setw(12) << static_cast<double>(4*bufsize) / total_elapsed << " (bytes/sec)\n";
     }
 
   // compute average over 2*nrep - in the ring above, we hit 2 pairs per loop
@@ -176,7 +179,8 @@ int main (int argc, char **argv)
               }
           }
 
-        std::cout << "# Slowest Step: t_max = " << global_t_max << " (sec)\n"
+        std::cout << "# Slowest Step: t_max = " << global_t_max << " (sec), "
+                  << static_cast<double>(4*bufsize) / global_t_max <<  " (bytes/sec)\n"
                   << "# --> END execution" << std::endl;
       }
   }
