@@ -1,5 +1,6 @@
 #include "mpi.h"
 #include <vector>
+#include <set>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -18,6 +19,8 @@ int main (int argc, char **argv)
     bufsize = bufcnt*(sizeof(unsigned int)),
     nrep = 10;
 
+  std::set<std::string> unique_hosts;
+
   MPI_Init (&argc, &argv);
   MPI_Comm_size (MPI_COMM_WORLD, &nranks);
   MPI_Comm_rank (MPI_COMM_WORLD, &myrank);
@@ -33,6 +36,16 @@ int main (int argc, char **argv)
     char hn[64];
     gethostname(hn, sizeof(hn) / sizeof(char));
 
+
+    // first step - undecorated hostnames
+    MPI_Allgather(&hn[0],  64, MPI_CHAR,
+                  &hns[0], 64, MPI_CHAR,
+                  MPI_COMM_WORLD);
+
+    for (unsigned int r=0; r<nranks; r++)
+      unique_hosts.insert(std::string(&hns[r*64]));
+
+    // second step - "global_rank:hostname:local_rank"
     std::ostringstream oss;
     oss << myrank << ":" << hn << ":" << mylocalrank;
     std::string str = oss.str();
@@ -41,29 +54,35 @@ int main (int argc, char **argv)
     MPI_Allgather(&str[0], 64, MPI_CHAR,
                   &hns[0], 64, MPI_CHAR,
                   MPI_COMM_WORLD);
+
+
+    if (0 == myrank)
+      {
+        time_t now = time(0);
+
+        std::cout << "# --> BEGIN execution\n"
+                  << "# " << ctime(&now)
+                  << "# " << argv[0] << "\n"
+                  << "# nranks = " << nranks << "\n"
+                  << "# MPI_Wtick() = " << MPI_Wtick() << "\n";
+
+        for (unsigned int idx=0, cnt=0; cnt<nranks; cnt++, idx+=64)
+          {
+            std::cout << std::string(&hns[idx]);
+
+            (cnt != (nranks-1)) ? std::cout << ", " : std::cout << "\n";
+          }
+
+        std::cout << "# unique hosts (" << unique_hosts.size() << "): ";
+        for (auto it=unique_hosts.begin(); it!=unique_hosts.end(); ++it)
+          std::cout << *it << " ";
+        std::cout << "\n";
+
+        std::cout << "# bufcnt  = " << bufcnt  << " (elements)\n"
+                  << "# bufsize = " << bufsize << " (bytes)\n"
+                  << "# myrank, procup, procdn=\n";
+      }
   }
-
-  if (0 == myrank)
-    {
-      time_t now = time(0);
-
-      std::cout << "# --> BEGIN execution\n"
-                << "# " << ctime(&now)
-                << "# " << argv[0] << "\n"
-                << "# nranks = " << nranks << "\n"
-                << "# MPI_Wtick() = " << MPI_Wtick() << "\n";
-
-      for (unsigned int idx=0, cnt=0; cnt<nranks; cnt++, idx+=64)
-        {
-          std::cout << std::string(&hns[idx]);
-
-          (cnt != (nranks-1)) ? std::cout << ", " : std::cout << "\n";
-        }
-
-      std::cout << "# bufcnt  = " << bufcnt  << " (elements)\n"
-                << "# bufsize = " << bufsize << " (bytes)\n"
-                << "# myrank, procup, procdn=\n";
-    }
 
   std::vector<unsigned int> sbuf, rbufA(bufcnt,0), rbufB(bufcnt,0);
   sbuf.reserve(bufcnt);
@@ -76,7 +95,7 @@ int main (int argc, char **argv)
   MPI_Request sreqs[2], rreqs[2];
   MPI_Status status;
 
-  double t_min=std::numeric_limits<double>::max(), t_max=0.;
+  double local_t_min=std::numeric_limits<double>::max(), local_t_max=0.;
 
   for (unsigned int rc=0; rc<nranks; rc++)
     {
@@ -122,8 +141,8 @@ int main (int argc, char **argv)
           // after all nonblocking comm has completed.
           // keep track of per-rank fastest and slowest extremes
           const double elapsed = (MPI_Wtime() - starttime);
-          t_min = std::min(t_min, elapsed);
-          t_max = std::max(t_max, elapsed);
+          local_t_min = std::min(local_t_min, elapsed);
+          local_t_max = std::max(local_t_max, elapsed);
           total_elapsed += elapsed;
 
           // check correctness (first few elem)
@@ -147,8 +166,8 @@ int main (int argc, char **argv)
     }
 
   // compute average over 2*nrep - in the ring above, we hit 2 pairs per loop
-  for (unsigned int i=0; i<nranks; ++i)
-    recv[i] /= static_cast<double>(2*nrep);
+  for (unsigned int r=0; r<nranks; ++r)
+    recv[r] /= static_cast<double>(2*nrep);
 
   // gather timing for all pairs
   {
@@ -160,9 +179,9 @@ int main (int argc, char **argv)
 
     const double elapsed = (MPI_Wtime() - starttime);
 
-    double global_t_max=t_max;
+    double global_t_max=local_t_max;
 
-    MPI_Allreduce(&t_max, &global_t_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&local_t_max, &global_t_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
     if (0 == myrank)
       {
